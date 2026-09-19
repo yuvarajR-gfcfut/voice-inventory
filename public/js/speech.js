@@ -143,8 +143,11 @@ class SpeechManager {
         }
       };
 
+      this.errorEmitted = false;
+
       this.recognition.onerror = (event) => {
         this.clearSilenceTimer();
+        this.errorEmitted = true;
         const rawCode = event.error || '';
         const mappedCode = this.mapErrorCode(rawCode);
 
@@ -161,7 +164,8 @@ class SpeechManager {
         this.listening = false;
 
         // If session ended without any speech and no error was emitted yet
-        if (wasListening && !this.hasReceivedSpeech && !this.lastTranscript) {
+        if (wasListening && !this.hasReceivedSpeech && !this.lastTranscript && !this.errorEmitted) {
+          this.errorEmitted = true;
           this.emit('error', 'no-speech', {
             code: 'no-speech',
             message: this.getErrorMessage('no-speech')
@@ -293,13 +297,21 @@ class SpeechManager {
   }
 }
 
-// Browser attachment
+// Browser and Node.js global attachment (compatible with plain script tags and Node ESM import)
 if (typeof window !== 'undefined') {
+  window.SpeechManager = SpeechManager;
   window.VI = window.VI || {};
   window.VI.SpeechManager = SpeechManager;
-  window.VI.speech = new SpeechManager();
+  if (!window.VI.speech) {
+    window.VI.speech = new SpeechManager();
+  }
 }
 
-// Node.js ESM/CJS export
-export { SpeechManager };
-export default SpeechManager;
+if (typeof globalThis !== 'undefined') {
+  globalThis.SpeechManager = SpeechManager;
+  globalThis.VI = globalThis.VI || {};
+  globalThis.VI.SpeechManager = SpeechManager;
+  if (!globalThis.VI.speech && typeof window === 'undefined') {
+    globalThis.VI.speech = new SpeechManager();
+  }
+}

@@ -460,16 +460,27 @@
     }
 
     function handleMicToggle() {
-      if (window.VI && window.VI.speech) {
-        if (window.VI.speech.isListening()) {
-          window.VI.speech.stopListening();
-        } else {
-          if (!window.VI.speech.isSupported()) {
-            showToast('Voice recognition is not supported on this browser. Please type below.', true);
-            document.getElementById('commandInput')?.focus();
-            return;
-          }
-          window.VI.speech.startListening(currentSpeechLang);
+      const speech = window.VI && window.VI.speech;
+      if (!speech) {
+        showToast('Voice service is loading. Please try again.', true);
+        document.getElementById('commandInput')?.focus();
+        return;
+      }
+
+      if (speech.isListening()) {
+        speech.stopListening();
+        setMicState('idle');
+      } else {
+        if (!speech.isSupported()) {
+          showToast('Voice recognition is not supported on this browser. Please type below.', true);
+          document.getElementById('commandInput')?.focus();
+          return;
+        }
+        // Immediate visual feedback that tap was received
+        setMicState('listening');
+        const started = speech.startListening(currentSpeechLang);
+        if (!started) {
+          setMicState('idle');
         }
       }
     }
@@ -516,44 +527,55 @@
     }
 
     // Connect speech events on DOM ready
-    window.addEventListener('DOMContentLoaded', () => {
+    let speechListenersRegistered = false;
+    function initDashboardSpeech() {
+      if (speechListenersRegistered) return;
       loadDashboardStats();
 
-      if (window.VI && window.VI.speech) {
-        window.VI.speech.onStart(() => {
-          setMicState('listening');
-        });
+      const speech = window.VI && window.VI.speech;
+      if (!speech) return;
 
-        window.VI.speech.onPartial((transcript) => {
-          const input = document.getElementById('commandInput');
-          if (input) {
-            input.value = transcript;
-          }
-        });
+      speechListenersRegistered = true;
 
-        window.VI.speech.onFinal((transcript) => {
-          const input = document.getElementById('commandInput');
-          if (input) {
-            input.value = transcript;
-            input.focus();
-          }
+      speech.onStart(() => {
+        setMicState('listening');
+      });
+
+      speech.onPartial((transcript) => {
+        const input = document.getElementById('commandInput');
+        if (input) {
+          input.value = transcript;
+        }
+      });
+
+      speech.onFinal((transcript) => {
+        const input = document.getElementById('commandInput');
+        if (input) {
+          input.value = transcript;
+          input.focus();
+        }
+        setMicState('idle');
+      });
+
+      speech.onError((code, details) => {
+        setMicState('error');
+        const msg = details?.message || speech.getErrorMessage(code);
+        showToast(msg, true);
+        document.getElementById('commandInput')?.focus();
+      });
+
+      speech.onEnd(() => {
+        if (currentState === 'listening') {
           setMicState('idle');
-        });
+        }
+      });
+    }
 
-        window.VI.speech.onError((code, details) => {
-          setMicState('error');
-          const msg = details?.message || window.VI.speech.getErrorMessage(code);
-          showToast(msg, true);
-          document.getElementById('commandInput')?.focus();
-        });
-
-        window.VI.speech.onEnd(() => {
-          if (currentState === 'listening') {
-            setMicState('idle');
-          }
-        });
-      }
-    });
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initDashboardSpeech);
+    } else {
+      initDashboardSpeech();
+    }
   </script>
 </body>
 </html>

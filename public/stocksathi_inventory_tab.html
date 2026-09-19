@@ -538,16 +538,34 @@
     }
 
     function handleVoiceSearchTap() {
-      if (window.VI && window.VI.speech) {
-        if (window.VI.speech.isListening()) {
-          window.VI.speech.stopListening();
-        } else {
-          if (!window.VI.speech.isSupported()) {
-            showToast('Voice recognition is not supported on this browser. Please type to search.', true);
-            document.getElementById('searchInput')?.focus();
-            return;
-          }
-          window.VI.speech.startListening('hi-IN');
+      const speech = window.VI && window.VI.speech;
+      const micBtn = document.getElementById('searchMicBtn');
+      if (!speech) {
+        showToast('Voice service is loading. Please try again.', true);
+        document.getElementById('searchInput')?.focus();
+        return;
+      }
+
+      if (speech.isListening()) {
+        speech.stopListening();
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+          micBtn.classList.remove('animate-pulse');
+        }
+      } else {
+        if (!speech.isSupported()) {
+          showToast('Voice recognition is not supported on this browser. Please type to search.', true);
+          document.getElementById('searchInput')?.focus();
+          return;
+        }
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-warm-accent)';
+          micBtn.classList.add('animate-pulse');
+        }
+        const started = speech.startListening('hi-IN');
+        if (!started && micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+          micBtn.classList.remove('animate-pulse');
         }
       }
     }
@@ -625,58 +643,68 @@
     }
 
     // Auto-load on session ready & register speech listeners
-    window.addEventListener('DOMContentLoaded', () => {
+    let invSpeechRegistered = false;
+    function initInventorySpeech() {
+      if (invSpeechRegistered) return;
       loadProducts();
 
-      if (window.VI && window.VI.speech) {
-        const micBtn = document.getElementById('searchMicBtn');
+      const speech = window.VI && window.VI.speech;
+      if (!speech) return;
 
-        window.VI.speech.onStart(() => {
-          if (micBtn) {
-            micBtn.style.backgroundColor = 'var(--color-warm-accent)';
-            micBtn.classList.add('animate-pulse');
-          }
-        });
+      invSpeechRegistered = true;
+      const micBtn = document.getElementById('searchMicBtn');
 
-        window.VI.speech.onPartial((transcript) => {
-          const input = document.getElementById('searchInput');
-          if (input) {
-            input.value = transcript;
-            handleSearch();
-          }
-        });
+      speech.onStart(() => {
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-warm-accent)';
+          micBtn.classList.add('animate-pulse');
+        }
+      });
 
-        window.VI.speech.onFinal((transcript) => {
-          const input = document.getElementById('searchInput');
-          if (input) {
-            input.value = transcript;
-            handleSearch();
-            input.focus();
-          }
-          if (micBtn) {
-            micBtn.style.backgroundColor = 'var(--color-primary-blue)';
-            micBtn.classList.remove('animate-pulse');
-          }
-        });
+      speech.onPartial((transcript) => {
+        const input = document.getElementById('searchInput');
+        if (input) {
+          input.value = transcript;
+          handleSearch();
+        }
+      });
 
-        window.VI.speech.onError((code, details) => {
-          if (micBtn) {
-            micBtn.style.backgroundColor = 'var(--color-primary-blue)';
-            micBtn.classList.remove('animate-pulse');
-          }
-          const msg = details?.message || window.VI.speech.getErrorMessage(code);
-          showToast(msg, true);
-          document.getElementById('searchInput')?.focus();
-        });
+      speech.onFinal((transcript) => {
+        const input = document.getElementById('searchInput');
+        if (input) {
+          input.value = transcript;
+          handleSearch();
+          input.focus();
+        }
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+          micBtn.classList.remove('animate-pulse');
+        }
+      });
 
-        window.VI.speech.onEnd(() => {
-          if (micBtn) {
-            micBtn.style.backgroundColor = 'var(--color-primary-blue)';
-            micBtn.classList.remove('animate-pulse');
-          }
-        });
-      }
-    });
+      speech.onError((code, details) => {
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+          micBtn.classList.remove('animate-pulse');
+        }
+        const msg = details?.message || speech.getErrorMessage(code);
+        showToast(msg, true);
+        document.getElementById('searchInput')?.focus();
+      });
+
+      speech.onEnd(() => {
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+          micBtn.classList.remove('animate-pulse');
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initInventorySpeech);
+    } else {
+      initInventorySpeech();
+    }
   </script>
 </body>
 </html>

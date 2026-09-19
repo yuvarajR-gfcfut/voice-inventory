@@ -1,6 +1,8 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { SpeechManager } from '../public/js/speech.js';
+import '../public/js/speech.js';
+
+const SpeechManager = globalThis.SpeechManager;
 
 describe('SpeechManager (public/js/speech.js)', () => {
 
