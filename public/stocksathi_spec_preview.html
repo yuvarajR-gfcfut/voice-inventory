@@ -7,6 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+  <style id="auth-guard">html { visibility: hidden; }</style>
+  <script src="/vendor/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    window.VI.auth.requireSession();
+  </script>
   <style>
     :root {
       --app-font: 'Baloo 2', system-ui, sans-serif;

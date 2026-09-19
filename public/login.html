@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSathi - Login / Sign Up</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Telugu:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-family-base: 'Baloo 2', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, sans-serif;
+      --color-primary-blue: #1D4ED8;
+      --color-primary-blue-hover: #1E40AF;
+      --color-warm-accent: #EA580C;
+      --color-bg-app: #F8FAFC;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #0F172A;
+      --color-text-secondary: #475569;
+      --color-border-subtle: #E2E8F0;
+      --border-width: 1.5px;
+    }
+
+    body {
+      font-family: var(--font-family-base);
+      background-color: var(--color-bg-app);
+      color: var(--color-text-primary);
+    }
+  </style>
+  <script src="/vendor/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+</head>
+<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-center">
+
+  <main class="w-full max-w-sm bg-[var(--color-bg-surface)] rounded-3xl border shadow-xl p-6 relative" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+    
+    <!-- App Brand Header -->
+    <header class="flex items-center gap-3 pb-5 border-b" style="border-color: var(--color-border-subtle);">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center font-extrabold text-white text-lg shadow-sm" style="background-color: var(--color-primary-blue);">
+        <span>SS</span>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-xl leading-tight">StockSathi</h1>
+        <p class="text-xs font-semibold text-[var(--color-text-secondary)]">स्टॉक साथी • కిరాణా సహాయకుడు</p>
+      </div>
+    </header>
+
+    <!-- Sign In / Sign Up Toggle -->
+    <div class="grid grid-cols-2 gap-1.5 p-1 my-5 bg-slate-100 rounded-xl text-xs font-bold text-center">
+      <button type="button" id="tabSignIn" onclick="setMode('signin')" class="h-12 rounded-lg bg-white shadow-sm text-blue-700 font-extrabold transition-all cursor-pointer">
+        साइन इन / Sign In
+      </button>
+      <button type="button" id="tabSignUp" onclick="setMode('signup')" class="h-12 rounded-lg text-slate-600 font-bold transition-all cursor-pointer">
+        नया खाता / Sign Up
+      </button>
+    </div>
+
+    <!-- Error Alert Box -->
+    <div id="errorBox" class="hidden mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold"></div>
+
+    <!-- Form -->
+    <form id="authForm" onsubmit="handleSubmit(event)" class="space-y-4">
+      
+      <!-- Shop Name (Sign-up only) -->
+      <div id="shopNameField" class="hidden">
+        <label for="shopNameInput" class="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
+          दुकान का नाम / SHOP NAME
+        </label>
+        <input
+          id="shopNameInput"
+          type="text"
+          placeholder="उदा. माँ लक्ष्मी किराना स्टोर्स"
+          class="w-full h-12 px-3.5 rounded-xl border font-semibold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+          style="border-width: var(--border-width); border-color: var(--color-border-subtle);"
+        >
+      </div>
+
+      <!-- Email Field -->
+      <div>
+        <label for="emailInput" class="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
+          ईमेल / EMAIL
+        </label>
+        <input
+          id="emailInput"
+          type="email"
+          required
+          placeholder="name@example.com"
+          class="w-full h-12 px-3.5 rounded-xl border font-semibold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+          style="border-width: var(--border-width); border-color: var(--color-border-subtle);"
+        >
+      </div>
+
+      <!-- Password Field -->
+      <div>
+        <label for="passwordInput" class="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
+          पासवर्ड / PASSWORD (कम से कम 8 अक्षर / Min 8 chars)
+        </label>
+        <input
+          id="passwordInput"
+          type="password"
+          required
+          minlength="8"
+          placeholder="••••••••"
+          class="w-full h-12 px-3.5 rounded-xl border font-semibold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+          style="border-width: var(--border-width); border-color: var(--color-border-subtle);"
+        >
+      </div>
+
+      <!-- Submit CTA Button (Min 48px height) -->
+      <div class="pt-2">
+        <button
+          type="submit"
+          id="submitBtn"
+          class="w-full h-13 rounded-2xl font-extrabold text-base text-white shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-98"
+          style="background-color: var(--color-primary-blue);"
+        >
+          <span id="btnText">साइन इन करें / Sign In</span>
+        </button>
+      </div>
+
+    </form>
+
+  </main>
+
+  <script>
+    let currentMode = 'signin';
+
+    // If already logged in, go straight to dashboard
+    (async function checkExistingSession() {
+      try {
+        const token = await window.VI.auth.getToken();
+        if (token) {
+          window.location.replace('/stocksathi_home_dashboard.html');
+        }
+      } catch (_) {}
+    })();
+
+    function setMode(mode) {
+      currentMode = mode;
+      const tabSignIn = document.getElementById('tabSignIn');
+      const tabSignUp = document.getElementById('tabSignUp');
+      const shopField = document.getElementById('shopNameField');
+      const btnText = document.getElementById('btnText');
+      const errorBox = document.getElementById('errorBox');
+      errorBox.classList.add('hidden');
+
+      if (mode === 'signin') {
+        tabSignIn.className = 'h-12 rounded-lg bg-white shadow-sm text-blue-700 font-extrabold transition-all cursor-pointer';
+        tabSignUp.className = 'h-12 rounded-lg text-slate-600 font-bold transition-all cursor-pointer';
+        shopField.classList.add('hidden');
+        btnText.textContent = 'साइन इन करें / Sign In';
+      } else {
+        tabSignUp.className = 'h-12 rounded-lg bg-white shadow-sm text-blue-700 font-extrabold transition-all cursor-pointer';
+        tabSignIn.className = 'h-12 rounded-lg text-slate-600 font-bold transition-all cursor-pointer';
+        shopField.classList.remove('hidden');
+        btnText.textContent = 'खाता बनाएं / Create Account';
+      }
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const shopName = document.getElementById('shopNameInput').value.trim();
+      const errorBox = document.getElementById('errorBox');
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+
+      errorBox.classList.add('hidden');
+      errorBox.textContent = '';
+
+      if (!email) {
+        errorBox.textContent = 'Please enter your email.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      if (!password || password.length < 8) {
+        errorBox.textContent = 'Password must be at least 8 characters long.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      // Loading state
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+      const originalText = btnText.textContent;
+      btnText.textContent = 'कृपया प्रतीक्षा करें / Please wait...';
+
+      try {
+        if (currentMode === 'signup') {
+          await window.VI.auth.signUp(email, password, shopName);
+          // Sign in after signup if not auto-signed in
+          const token = await window.VI.auth.getToken();
+          if (!token) {
+            await window.VI.auth.signIn(email, password);
+          }
+        } else {
+          await window.VI.auth.signIn(email, password);
+        }
+
+        window.location.replace('/stocksathi_home_dashboard.html');
+      } catch (err) {
+        errorBox.textContent = err.message || 'Authentication failed. Please check your credentials.';
+        errorBox.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        btnText.textContent = originalText;
+      }
+    }
+  </script>
+</body>
+</html>
