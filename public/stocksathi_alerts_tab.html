@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSathi - Alerts & Conversational Q&A</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-family-base: 'Baloo 2', system-ui, -apple-system, sans-serif;
+      --color-primary-blue: #1D4ED8;
+      --color-primary-blue-hover: #1E40AF;
+      --color-warm-accent: #EA580C;
+      --color-stock-green: #15803D;
+      --color-stock-green-bg: #DCFCE7;
+      --color-stock-red: #B91C1C;
+      --color-stock-red-bg: #FEE2E2;
+      --color-stock-amber: #B45309;
+      --color-stock-amber-bg: #FEF3C7;
+      --color-bg-app: #F8FAFC;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #0F172A;
+      --color-text-secondary: #64748B;
+      --color-border-subtle: #E2E8F0;
+      --border-width: 1.5px;
+      --chat-user-bg: #EFF6FF;
+      --chat-user-text: #1E40AF;
+      --chat-system-bg: #FFFFFF;
+    }
+
+    [data-theme="outdoor"] {
+      --color-primary-blue: #0C2366;
+      --color-primary-blue-hover: #081744;
+      --color-warm-accent: #C2410C;
+      --color-stock-green: #054F26;
+      --color-stock-green-bg: #FFFFFF;
+      --color-stock-red: #7F1D1D;
+      --color-stock-red-bg: #FFFFFF;
+      --color-stock-amber: #78350F;
+      --color-stock-amber-bg: #FFFFFF;
+      --color-bg-app: #FFFFFF;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #000000;
+      --color-text-secondary: #1E293B;
+      --color-border-subtle: #000000;
+      --border-width: 2.5px;
+      --chat-user-bg: #F1F5F9;
+      --chat-user-text: #000000;
+      --chat-system-bg: #FFFFFF;
+    }
+
+    body {
+      font-family: var(--font-family-base);
+      background-color: var(--color-bg-app);
+      color: var(--color-text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .bubble-user {
+      border-radius: 18px 18px 4px 18px;
+    }
+
+    .bubble-system {
+      border-radius: 18px 18px 18px 4px;
+    }
+
+    .mic-shadow {
+      box-shadow: 0 8px 24px rgba(29, 78, 216, 0.35);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-start">
+  
+  <!-- Interactive Controller Header -->
+  <div class="w-full max-w-sm mb-3 space-y-2">
+    <div class="flex items-center justify-between text-xs font-bold px-1">
+      <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">Alerts & Voice Q&A</span>
+      <button onclick="toggleSunlightMode()" id="sunlightBtn" class="px-2.5 py-1 rounded-lg border bg-white shadow-sm flex items-center gap-1 cursor-pointer active:scale-95">
+        <span>☀️</span>
+        <span id="sunlightLabel">Sunlight Mode</span>
+      </button>
+    </div>
+
+    <!-- State Switcher: Active Alerts vs Healthy Empty State -->
+    <div class="grid grid-cols-2 gap-2 p-1 bg-slate-200/80 rounded-xl text-xs font-bold text-center">
+      <button onclick="setAlertState('active')" id="btn-active" class="py-1.5 rounded-lg bg-white shadow text-rose-800">
+        ⚠️ Active Alerts (2)
+      </button>
+      <button onclick="setAlertState('healthy')" id="btn-healthy" class="py-1.5 rounded-lg text-slate-700">
+        ✓ All Healthy (0)
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Device Simulation Frame -->
+  <main class="w-full max-w-sm bg-[var(--color-bg-surface)] rounded-3xl border shadow-2xl relative flex flex-col justify-between overflow-hidden" style="border-width: var(--border-width); border-color: var(--color-border-subtle); height: 760px;">
+    
+    <!-- Top Header -->
+    <div class="px-5 pt-4 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
+      <div>
+        <h1 class="font-black text-xl leading-tight text-[var(--color-text-primary)]">अलर्ट और सवाल (Alerts & Q&A)</h1>
+        <p class="text-xs font-semibold text-[var(--color-text-secondary)]">Proactive Stock Alerts & Voice Assistant</p>
+      </div>
+      <div class="w-8 h-8 rounded-full bg-blue-50 border flex items-center justify-center text-blue-700 font-black text-xs" style="border-color: var(--color-border-subtle);">
+        AI
+      </div>
+    </div>
+
+    <!-- Scrollable Middle Section: Alerts + Chat Thread -->
+    <div id="scrollCanvas" class="flex-1 overflow-y-auto p-4 space-y-5 pb-28">
+      
+      <!-- TOP SECTION: "NEEDS ATTENTION" ALERT STACK -->
+      <section id="alertSection" class="space-y-2.5">
+        
+        <!-- Active Alerts Mode -->
+        <div id="activeAlertsGroup" class="space-y-2.5">
+          <div class="flex items-center justify-between text-xs font-extrabold text-[var(--color-text-primary)]">
+            <span>ध्यान दें (Needs Attention)</span>
+            <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-black uppercase">2 Critical</span>
+          </div>
+
+          <!-- Alert Card 1: Out of Stock (Red) -->
+          <div class="p-3.5 rounded-2xl border bg-white flex items-center justify-between gap-3 shadow-sm border-l-4 border-l-red-600" style="border-width: var(--border-width); border-left-width: 5px; border-color: var(--color-border-subtle); border-left-color: var(--color-stock-red);">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-red-50 border border-red-200 flex-shrink-0 flex items-center justify-center text-red-700 font-bold text-xs">
+                80g
+              </div>
+              <div>
+                <h3 class="font-extrabold text-sm leading-snug text-[var(--color-text-primary)]">पारले-जी बिस्किट (Parle-G)</h3>
+                <div class="font-black text-sm text-red-700 mt-0.5">0 पैकेट (Out of Stock)</div>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-red-bg); color: var(--color-stock-red);">
+              खत्म माल (Empty)
+            </span>
+          </div>
+
+          <!-- Alert Card 2: Low Stock (Amber) -->
+          <div class="p-3.5 rounded-2xl border bg-white flex items-center justify-between gap-3 shadow-sm border-l-4 border-l-amber-500" style="border-width: var(--border-width); border-left-width: 5px; border-color: var(--color-border-subtle); border-left-color: var(--color-stock-amber);">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-yellow-50 border border-amber-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=120&auto=format&fit=crop&q=80" alt="Oil" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h3 class="font-extrabold text-sm leading-snug text-[var(--color-text-primary)]">फॉर्च्यून तेल 1L (Fortune Oil)</h3>
+                <div class="font-black text-sm text-amber-900 mt-0.5">4 Litres (कम है)</div>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-amber-bg); color: var(--color-stock-amber);">
+              मंगाएं (Order soon)
+            </span>
+          </div>
+        </div>
+
+        <!-- Empty State Mode: All Stock Levels Look Healthy -->
+        <div id="healthyStateGroup" class="hidden p-4 rounded-2xl border bg-emerald-50/80 flex items-center gap-3.5 shadow-sm" style="border-width: var(--border-width); border-color: var(--color-stock-green);">
+          <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex-shrink-0 flex items-center justify-center shadow">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-black text-sm text-emerald-950">
+              All stock levels look healthy <br>
+              <span class="text-xs font-extrabold text-emerald-800">(सब ठीक है • कोई अलर्ट नहीं)</span>
+            </h3>
+            <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">No products require immediate reordering.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- MIDDLE SECTION: CONVERSATIONAL Q&A CHAT THREAD -->
+      <section class="space-y-3 pt-2 border-t" style="border-color: var(--color-border-subtle);">
+        
+        <div class="flex items-center justify-between text-xs font-extrabold text-[var(--color-text-secondary)]">
+          <span>बातचीत इतिहास (Stock Inquiries)</span>
+          <span class="text-[10px] text-slate-400 font-semibold">Today</span>
+        </div>
+
+        <!-- Exchange 1: With Embedded Stock-Summary Card -->
+        <div class="space-y-2">
+          <!-- Owner Question (Right-Aligned) -->
+          <div class="flex justify-end">
+            <div class="bubble-user max-w-[80%] p-3 text-xs font-extrabold border" style="background-color: var(--chat-user-bg); color: var(--chat-user-text); border-color: var(--color-border-subtle);">
+              how much rice is left? (चावल कितना बचा है?)
+            </div>
+          </div>
+
+          <!-- System Response (Left-Aligned with Spoken + Text + Embedded Card) -->
+          <div class="flex justify-start">
+            <div class="bubble-system max-w-[90%] p-3.5 text-xs bg-white border shadow-sm space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              <div class="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
+                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>StockSathi Voice Readout:</span>
+              </div>
+              <p class="font-semibold text-slate-800 text-xs leading-relaxed">
+                You have <strong>6 bags of India Gate Basmati Rice</strong> left. That is sufficient for about 3 days.
+              </p>
+
+              <!-- Embedded Compact Stock-Summary Card -->
+              <div class="p-2.5 rounded-xl bg-slate-50 border flex items-center justify-between gap-3 shadow-inner" style="border-color: var(--color-border-subtle);">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-900 border border-amber-200 flex-shrink-0">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16 6V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H2v13c0 1.89 1.41 3 3 3h14c1.59 0 3-1.11 3-3V6h-6zm-6-2h4v2h-4V4z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-extrabold text-xs text-slate-900">India Gate Rice (चावल)</div>
+                    <div class="text-[10px] font-semibold text-slate-500">Reorder limit: 5 Bags</div>
+                  </div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <div class="font-black text-sm text-slate-900">6 Bags</div>
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                    ✓ पर्याप्त (Healthy)
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Exchange 2: Without Embedded Card (Timestamp / Delivery query) -->
+        <div class="space-y-2 pt-1">
+          <!-- Owner Question (Right-Aligned) -->
+          <div class="flex justify-end">
+            <div class="bubble-user max-w-[80%] p-3 text-xs font-extrabold border" style="background-color: var(--chat-user-bg); color: var(--chat-user-text); border-color: var(--color-border-subtle);">
+              kab aaya tha chini? (When did sugar arrive?)
+            </div>
+          </div>
+
+          <!-- System Response (Left-Aligned Spoken Text Answer) -->
+          <div class="flex justify-start">
+            <div class="bubble-system max-w-[85%] p-3.5 text-xs bg-white border shadow-sm space-y-1" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              <div class="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
+                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>StockSathi Voice Readout:</span>
+              </div>
+              <p class="font-semibold text-slate-800 text-xs leading-relaxed">
+                Yesterday at <strong>11:30 AM</strong>, 20 bags of Madhur Sugar arrived from ITC Mandi Delivery.
+              </p>
+              <div class="text-[10px] text-slate-400 font-medium">Logged via Voice Entry #842</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- BOTTOM SECTION: FIXED VOICE INPUT ACTION HUB -->
+    <div class="absolute bottom-16 left-0 right-0 p-3 bg-gradient-to-t from-white via-white/95 to-transparent flex flex-col items-center justify-center z-20">
+      
+      <div class="flex items-center gap-3">
+        <!-- Prominent Mic Button (68px) Consistent with Home Screen -->
+        <button onclick="promptVoiceQuestion()" class="mic-shadow w-16 h-16 rounded-full flex items-center justify-center text-white cursor-pointer transition-transform active:scale-92" style="background-color: var(--color-primary-blue); border: var(--border-width) solid #000000;" aria-label="Tap to ask inventory question">
+          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+
+        <div class="text-left">
+          <div class="font-extrabold text-sm text-[var(--color-text-primary)]">Ask StockSathi (बोलकर पूछें)</div>
+          <div class="text-[11px] font-semibold text-[var(--color-text-secondary)]">उदा: "चावल कितना बचा है?"</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Tab Bar (Alerts Active) -->
+    <footer class="h-16 border-t flex items-center justify-around px-2 relative z-10" style="background-color: var(--color-bg-surface); border-color: var(--color-border-subtle); border-width: var(--border-width) 0 0 0;">
+      
+      <!-- Tab 1: Home -->
+      <button onclick="alert('Navigating to Home...')" class="flex flex-col items-center justify-center flex-1 h-full text-slate-400 hover:text-slate-600 cursor-pointer">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+        <span class="text-[11px] font-medium mt-0.5">Home</span>
+      </button>
+
+      <!-- Tab 2: Inventory -->
+      <button onclick="alert('Navigating to Inventory...')" class="flex flex-col items-center justify-center flex-1 h-full text-slate-400 hover:text-slate-600 cursor-pointer">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+        </svg>
+        <span class="text-[11px] font-medium mt-0.5">Inventory</span>
+      </button>
+
+      <!-- Tab 3: Alerts (Active with Top Indicator) -->
+      <button class="flex flex-col items-center justify-center flex-1 h-full relative cursor-pointer" style="color: var(--color-primary-blue);">
+        <div class="absolute top-0 w-8 h-1 rounded-full" style="background-color: var(--color-primary-blue);"></div>
+        <div class="relative">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+          </svg>
+          <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full"></span>
+        </div>
+        <span class="text-[11px] font-extrabold mt-0.5">Alerts</span>
+      </button>
+
+      <!-- Tab 4: Settings -->
+      <button onclick="alert('Navigating to Settings...')" class="flex flex-col items-center justify-center flex-1 h-full text-slate-400 hover:text-slate-600 cursor-pointer">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+        <span class="text-[11px] font-medium mt-0.5">Settings</span>
+      </button>
+
+    </footer>
+
+  </main>
+
+  <script>
+    let isSunlight = false;
+
+    function setAlertState(state) {
+      const activeGroup = document.getElementById('activeAlertsGroup');
+      const healthyGroup = document.getElementById('healthyStateGroup');
+      const btnActive = document.getElementById('btn-active');
+      const btnHealthy = document.getElementById('btn-healthy');
+
+      if (state === 'active') {
+        activeGroup.classList.remove('hidden');
+        healthyGroup.classList.add('hidden');
+        btnActive.className = 'py-1.5 rounded-lg bg-white shadow text-rose-800 font-bold';
+        btnHealthy.className = 'py-1.5 rounded-lg text-slate-700 font-medium';
+      } else {
+        activeGroup.classList.add('hidden');
+        healthyGroup.classList.remove('hidden');
+        btnHealthy.className = 'py-1.5 rounded-lg bg-white shadow text-emerald-800 font-bold';
+        btnActive.className = 'py-1.5 rounded-lg text-slate-700 font-medium';
+      }
+    }
+
+    function promptVoiceQuestion() {
+      const q = prompt("Speak or type question for StockSathi (सवाल पूछें):", "tel kitna bacha hai?");
+      if (q) {
+        alert(`🎙️ Voice Engine Query: "${q}"\nStockSathi Response: "You have 4 litres of Fortune Oil left."`);
+      }
+    }
+
+    function toggleSunlightMode() {
+      isSunlight = !isSunlight;
+      const html = document.documentElement;
+      const btn = document.getElementById('sunlightBtn');
+      const label = document.getElementById('sunlightLabel');
+
+      if (isSunlight) {
+        html.setAttribute('data-theme', 'outdoor');
+        label.textContent = "Normal Mode";
+        btn.classList.add('bg-black', 'text-white');
+      } else {
+        html.removeAttribute('data-theme');
+        label.textContent = "Sunlight Mode";
+        btn.classList.remove('bg-black', 'text-white');
+      }
+    }
+  </script>
+</body>
+</html>

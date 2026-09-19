@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSathi - Settings Screen</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-family-base: 'Baloo 2', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
+      --color-primary-blue: #1D4ED8;
+      --color-primary-blue-hover: #1E40AF;
+      --color-warm-accent: #EA580C;
+      --color-bg-app: #F8FAFC;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #0F172A;
+      --color-text-secondary: #64748B;
+      --color-border-subtle: #E2E8F0;
+      --border-width: 1.5px;
+    }
+
+    [data-theme="outdoor"] {
+      --color-primary-blue: #0C2366;
+      --color-primary-blue-hover: #081744;
+      --color-warm-accent: #C2410C;
+      --color-bg-app: #FFFFFF;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #000000;
+      --color-text-secondary: #1E293B;
+      --color-border-subtle: #000000;
+      --border-width: 2.5px;
+    }
+
+    body {
+      font-family: var(--font-family-base);
+      background-color: var(--color-bg-app);
+      color: var(--color-text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Accessible Switch Styles */
+    .switch-track {
+      width: 56px;
+      height: 32px;
+      border-radius: 9999px;
+      transition: background-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .switch-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background-color: #FFFFFF;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .switch-on .switch-track {
+      background-color: var(--color-primary-blue);
+    }
+
+    .switch-on .switch-thumb {
+      transform: translateX(26px);
+    }
+
+    .switch-off .switch-track {
+      background-color: #CBD5E1;
+    }
+
+    .switch-off .switch-thumb {
+      transform: translateX(3px);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-start">
+  
+  <!-- Interactive Controller Header -->
+  <div class="w-full max-w-sm mb-3 flex items-center justify-between text-xs font-bold px-1">
+    <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">StockSathi Settings v1.0</span>
+    <button onclick="toggleSunlightMode()" id="sunlightBtn" class="px-2.5 py-1 rounded-lg border bg-white shadow-sm flex items-center gap-1 cursor-pointer active:scale-95">
+      <span>☀️</span>
+      <span id="sunlightLabel">Sunlight Mode</span>
+    </button>
+  </div>
+
+  <!-- Mobile Viewport Frame -->
+  <main class="w-full max-w-sm bg-[var(--color-bg-surface)] rounded-3xl border shadow-2xl relative flex flex-col justify-between overflow-hidden" style="border-width: var(--border-width); border-color: var(--color-border-subtle); height: 750px;">
+    
+    <!-- Top Header -->
+    <header class="px-5 pt-4 pb-3 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
+      <div>
+        <h1 id="screenTitle" class="font-black text-xl leading-tight text-[var(--color-text-primary)]">सेटिंग्स (Settings)</h1>
+        <p class="text-xs font-semibold text-[var(--color-text-secondary)]">Shop Preferences & Unit Rules</p>
+      </div>
+      <div class="w-8 h-8 rounded-full bg-slate-100 border flex items-center justify-center text-slate-700" style="border-color: var(--color-border-subtle);">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+      </div>
+    </header>
+
+    <!-- Single Scrollable Column Body -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-5 pb-6">
+      
+      <!-- SECTION 1: LANGUAGE SELECTION OPTION -->
+      <section class="space-y-1.5">
+        <label class="block text-xs font-black uppercase tracking-wider text-[var(--color-text-secondary)] px-1">
+          1. भाषा / Language
+        </label>
+        <div class="p-3.5 rounded-2xl border bg-white flex items-center justify-between shadow-sm" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              </svg>
+            </div>
+            <div>
+              <div id="activeLangName" class="font-extrabold text-base text-[var(--color-text-primary)]">हिन्दी (Hindi)</div>
+              <div class="text-xs font-semibold text-[var(--color-text-secondary)]">बोली और लिखावट (Spoken & Text)</div>
+            </div>
+          </div>
+
+          <!-- Quick Switcher Button -->
+          <button onclick="cycleLanguage()" class="px-3.5 py-1.5 rounded-xl border text-xs font-extrabold text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 active:scale-95 transition-all cursor-pointer">
+            बदलें (Change)
+          </button>
+        </div>
+      </section>
+
+      <!-- SECTION 2: SHOP NAME & PHONE NUMBER FIELDS -->
+      <section class="space-y-3">
+        <label class="block text-xs font-black uppercase tracking-wider text-[var(--color-text-secondary)] px-1">
+          2. दुकान का विवरण / Shop Details
+        </label>
+
+        <!-- Shop Name Field -->
+        <div>
+          <label for="shopNameField" class="block text-xs font-bold text-slate-700 mb-1">
+            दुकान का नाम (Shop Name)
+          </label>
+          <div class="relative flex items-center">
+            <span class="absolute left-3.5 text-slate-400">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 4h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 8h1v8h14v-8h1a1 1 0 0 1 1 1v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a1 1 0 0 1 1-1z"/>
+              </svg>
+            </span>
+            <input id="shopNameField" type="text" value="माँ लक्ष्मी किराना स्टोर्स" class="w-full h-13 pl-11 pr-4 rounded-xl border font-bold text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          </div>
+        </div>
+
+        <!-- Phone Number Field -->
+        <div>
+          <label for="phoneField" class="block text-xs font-bold text-slate-700 mb-1">
+            फ़ोन नंबर (Phone Number)
+          </label>
+          <div class="relative flex items-center">
+            <div class="absolute left-3 flex items-center gap-1 font-bold text-xs text-slate-700 border-r pr-2 h-6">
+              <span>+91</span>
+            </div>
+            <input id="phoneField" type="tel" value="98765 43210" class="w-full h-13 pl-16 pr-4 rounded-xl border font-bold text-sm bg-white tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: VOICE RESPONSE ON/OFF TOGGLE SWITCH -->
+      <section class="space-y-1.5">
+        <label class="block text-xs font-black uppercase tracking-wider text-[var(--color-text-secondary)] px-1">
+          3. आवाज़ से जवाब / Voice Response
+        </label>
+        
+        <div class="p-3.5 rounded-2xl border bg-white shadow-sm space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div id="speakerIconContainer" class="w-11 h-11 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center flex-shrink-0">
+                <svg id="speakerIcon" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="font-extrabold text-sm text-[var(--color-text-primary)]">बोलकर जवाब दें (Voice Response)</div>
+                <div id="toggleStatusLabel" class="text-xs font-bold text-blue-700">चालू है (Active / Speaking)</div>
+              </div>
+            </div>
+
+            <!-- Accessible Large Toggle Switch -->
+            <div id="voiceSwitch" onclick="toggleVoiceResponse()" class="switch-on flex items-center select-none" role="switch" aria-checked="true">
+              <div class="switch-track flex items-center p-1">
+                <div class="switch-thumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Crucial Note on Noisy Environment -->
+          <div class="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 flex items-start gap-2 text-xs">
+            <span class="text-base leading-none">📢</span>
+            <p class="font-semibold text-amber-950 leading-relaxed text-[11px]">
+              <strong>Noisy Shop Mode:</strong> Turn OFF in loud market environments so responses appear only as text on screen without audio feedback.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 4: UNITS REFERENCE CARD -->
+      <section class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <label class="block text-xs font-black uppercase tracking-wider text-[var(--color-text-secondary)]">
+            4. नाप-तौल संदर्भ / Units Reference
+          </label>
+          <span class="text-[10px] font-bold text-slate-400">Standard Mandi Rules</span>
+        </div>
+
+        <!-- Reference Table Card -->
+        <div class="p-3.5 rounded-2xl border bg-white shadow-sm space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          
+          <p class="text-[11px] font-medium text-slate-600">
+            StockSathi automatically understands these trading units when you speak:
+          </p>
+
+          <div class="grid grid-cols-1 gap-2">
+            
+            <!-- Unit 1: Bag / Bori -->
+            <div class="p-2 rounded-xl bg-slate-50 border flex items-center justify-between text-xs" style="border-color: var(--color-border-subtle);">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H2v13c0 1.89 1.41 3 3 3h14c1.59 0 3-1.11 3-3V6h-6zm-6-2h4v2h-4V4z"/></svg>
+                </div>
+                <div>
+                  <span class="font-extrabold text-slate-900">1 Bag (बोरी)</span>
+                  <span class="text-[11px] text-slate-500 block">Sugar / Rice / Wheat</span>
+                </div>
+              </div>
+              <span class="font-black text-slate-800 bg-white px-2 py-0.5 rounded border" style="border-color: var(--color-border-subtle);">
+                = 50 kg
+              </span>
+            </div>
+
+            <!-- Unit 2: Carton / Peti -->
+            <div class="p-2 rounded-xl bg-slate-50 border flex items-center justify-between text-xs" style="border-color: var(--color-border-subtle);">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-900 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-7 2v4h-2V6h2zm-2 12v-4h2v4h-2z"/></svg>
+                </div>
+                <div>
+                  <span class="font-extrabold text-slate-900">1 Carton (पेटी)</span>
+                  <span class="text-[11px] text-slate-500 block">Biscuits / Soaps / FMCG</span>
+                </div>
+              </div>
+              <span class="font-black text-slate-800 bg-white px-2 py-0.5 rounded border" style="border-color: var(--color-border-subtle);">
+                = 24 units
+              </span>
+            </div>
+
+            <!-- Unit 3: Quintal / Qtl -->
+            <div class="p-2 rounded-xl bg-slate-50 border flex items-center justify-between text-xs" style="border-color: var(--color-border-subtle);">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center flex-shrink-0 font-bold text-[10px]">
+                  100k
+                </div>
+                <div>
+                  <span class="font-extrabold text-slate-900">1 Quintal (क्विंटल)</span>
+                  <span class="text-[11px] text-slate-500 block">Wholesale Grain Mandi</span>
+                </div>
+              </div>
+              <span class="font-black text-slate-800 bg-white px-2 py-0.5 rounded border" style="border-color: var(--color-border-subtle);">
+                = 100 kg
+              </span>
+            </div>
+
+            <!-- Unit 4: Litre / L -->
+            <div class="p-2 rounded-xl bg-slate-50 border flex items-center justify-between text-xs" style="border-color: var(--color-border-subtle);">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                </div>
+                <div>
+                  <span class="font-extrabold text-slate-900">1 Litre (लीटर)</span>
+                  <span class="text-[11px] text-slate-500 block">Mustard / Refined Oil</span>
+                </div>
+              </div>
+              <span class="font-black text-slate-800 bg-white px-2 py-0.5 rounded border" style="border-color: var(--color-border-subtle);">
+                = 1,000 ml
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Bottom Tab Bar (Settings Active) -->
+    <footer class="h-16 border-t flex items-center justify-around px-2 relative z-10" style="background-color: var(--color-bg-surface); border-color: var(--color-border-subtle); border-width: var(--border-width) 0 0 0;">
+      
+      <!-- Tab 1: Home -->
+      <button onclick="alert('Navigating to Home...')" class="flex flex-col items-center justify-center flex-1 h-full text-slate-400 hover:text-slate-600 cursor-pointer">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+        <span class="text-[11px] font-medium mt-0.5">Home</span>
+      </button>
+
+      <!-- Tab 2: Inventory -->
+      <button onclick="alert('Navigating to Inventory...')" class="flex flex-col items-center justify-center flex-1 h-full text-slate-400 hover:text-slate-600 cursor-pointer">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+        </svg>
+        <span class="text-[11px] font-medium mt-0.5">Inventory</span>
+      </button>
+
+      <!-- Tab 3: Alerts -->
+      <button onclick="alert('Navigating to Alerts...')" class="flex flex-col items-center justify-center flex-1 h-full text-slate-400 hover:text-slate-600 cursor-pointer">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+        </svg>
+        <span class="text-[11px] font-medium mt-0.5">Alerts</span>
+      </button>
+
+      <!-- Tab 4: Settings (Active with Top Indicator) -->
+      <button class="flex flex-col items-center justify-center flex-1 h-full relative cursor-pointer" style="color: var(--color-primary-blue);">
+        <div class="absolute top-0 w-8 h-1 rounded-full" style="background-color: var(--color-primary-blue);"></div>
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+        <span class="text-[11px] font-extrabold mt-0.5">Settings</span>
+      </button>
+
+    </footer>
+
+  </main>
+
+  <script>
+    let isVoiceOn = true;
+    let isSunlight = false;
+    const languages = [
+      { code: 'hi', name: 'हिन्दी (Hindi)' },
+      { code: 'te', name: 'తెలుగు (Telugu)' },
+      { code: 'en', name: 'English (Indian)' }
+    ];
+    let langIndex = 0;
+
+    function cycleLanguage() {
+      langIndex = (langIndex + 1) % languages.length;
+      const lang = languages[langIndex];
+      document.getElementById('activeLangName').textContent = lang.name;
+      alert(`Language switched to: ${lang.name}\nInterface will re-render with this localized preference.`);
+    }
+
+    function toggleVoiceResponse() {
+      isVoiceOn = !isVoiceOn;
+      const sw = document.getElementById('voiceSwitch');
+      const lbl = document.getElementById('toggleStatusLabel');
+      const icon = document.getElementById('speakerIcon');
+
+      if (isVoiceOn) {
+        sw.className = "switch-on flex items-center select-none";
+        lbl.textContent = "चालू है (Active / Speaking)";
+        lbl.className = "text-xs font-bold text-blue-700";
+        icon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+      } else {
+        sw.className = "switch-off flex items-center select-none";
+        lbl.textContent = "म्यूट है (Muted / Text Only)";
+        lbl.className = "text-xs font-bold text-slate-500";
+        icon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+      }
+    }
+
+    function toggleSunlightMode() {
+      isSunlight = !isSunlight;
+      const html = document.documentElement;
+      const btn = document.getElementById('sunlightBtn');
+      const label = document.getElementById('sunlightLabel');
+
+      if (isSunlight) {
+        html.setAttribute('data-theme', 'outdoor');
+        label.textContent = "Normal Mode";
+        btn.classList.add('bg-black', 'text-white');
+      } else {
+        html.removeAttribute('data-theme');
+        label.textContent = "Sunlight Mode";
+        btn.classList.remove('bg-black', 'text-white');
+      }
+    }
+  </script>
+</body>
+</html>

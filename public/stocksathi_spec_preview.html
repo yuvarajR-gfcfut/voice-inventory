@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StockSathi Design System Interactive Spec</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --app-font: 'Baloo 2', system-ui, sans-serif;
+      --color-primary: #1D4ED8;
+      --color-primary-hover: #1E40AF;
+      --color-accent: #EA580C;
+      --color-green: #15803D;
+      --color-green-bg: #DCFCE7;
+      --color-amber: #B45309;
+      --color-amber-bg: #FEF3C7;
+      --color-red: #B91C1C;
+      --color-red-bg: #FEE2E2;
+      --color-bg-body: #F8FAFC;
+      --color-surface: #FFFFFF;
+      --color-text-main: #0F172A;
+      --color-text-sub: #475569;
+      --border-color: #E2E8F0;
+      --border-w: 1.5px;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .outdoor-mode {
+      --color-primary: #0C2366;
+      --color-primary-hover: #081744;
+      --color-accent: #C2410C;
+      --color-green: #054F26;
+      --color-green-bg: #FFFFFF;
+      --color-amber: #78350F;
+      --color-amber-bg: #FFFFFF;
+      --color-red: #7F1D1D;
+      --color-red-bg: #FFFFFF;
+      --color-bg-body: #FFFFFF;
+      --color-surface: #FFFFFF;
+      --color-text-main: #000000;
+      --color-text-sub: #1E293B;
+      --border-color: #000000;
+      --border-w: 2.5px;
+      --card-shadow: 0 0 0 2.5px #000000;
+    }
+
+    body {
+      font-family: var(--app-font);
+      background-color: var(--color-bg-body);
+      color: var(--color-text-main);
+      transition: all 0.25s ease;
+    }
+
+    .spec-card {
+      background-color: var(--color-surface);
+      border: var(--border-w) solid var(--border-color);
+      box-shadow: var(--card-shadow);
+      transition: all 0.25s ease;
+    }
+
+    @keyframes sonarWave {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.7); opacity: 0; }
+    }
+
+    .sonar-active {
+      animation: sonarWave 1.3s cubic-bezier(0.1, 0.3, 0.7, 1) infinite;
+    }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-4xl mx-auto space-y-8">
+    
+    <!-- Top Bar with Mode Switcher -->
+    <div class="spec-card rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full uppercase tracking-wider">v1.0 Tokens</span>
+          <h1 class="text-2xl font-bold">StockSathi (स्टॉक साथी) Design System</h1>
+        </div>
+        <p class="text-sm opacity-80 mt-1">Voice-First PWA for Low-Literacy Indian Kirana Shopkeepers</p>
+      </div>
+
+      <!-- Mode Toggle Button -->
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="px-5 py-3 rounded-xl font-bold text-sm flex items-center gap-2 border-2 cursor-pointer transition-all bg-amber-400 text-amber-950 border-amber-600 shadow-md active:scale-95">
+        <span id="themeIcon">☀️</span>
+        <span id="themeBtnText">Switch to Outdoor Sunlight Mode</span>
+      </button>
+    </div>
+
+    <!-- Live Interactive Preview: Mobile Kirana Screen Frame -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+      
+      <!-- Phone Viewport Simulation -->
+      <div class="spec-card rounded-3xl p-5 relative overflow-hidden max-w-sm mx-auto w-full pb-28 border-4 border-slate-800">
+        <!-- Phone Top Header -->
+        <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-color);">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white" style="background-color: var(--color-primary);">S</div>
+            <span class="font-bold text-lg">StockSathi</span>
+          </div>
+          <!-- Language Selector Icon/Pill -->
+          <button class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border" style="border-color: var(--border-color); background-color: var(--color-surface);">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            <span>हिन्दी / A</span>
+          </button>
+        </div>
+
+        <!-- Today's Live Inventory Status -->
+        <div class="mt-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="font-bold text-lg">आज का स्टॉक (Today's Stock)</h2>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-800">18 Items</span>
+          </div>
+
+          <!-- Item Card 1: Healthy -->
+          <div class="p-3 rounded-xl border flex items-center justify-between" style="border-color: var(--border-color); background-color: var(--color-surface);">
+            <div>
+              <div class="font-bold text-base">आशीर्वाद आटा (Aashirvaad Aata)</div>
+              <div class="text-xs opacity-75">5 kg बोरी (Sack) • ₹185</div>
+            </div>
+            <div class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style="background-color: var(--color-green-bg); color: var(--color-green); border: var(--border-w) solid var(--color-green);">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>स्टॉक में है</span>
+            </div>
+          </div>
+
+          <!-- Item Card 2: Warning -->
+          <div class="p-3 rounded-xl border flex items-center justify-between" style="border-color: var(--border-color); background-color: var(--color-surface);">
+            <div>
+              <div class="font-bold text-base">सरसों तेल (Mustard Oil)</div>
+              <div class="text-xs opacity-75">1 Litre टीन • ₹140</div>
+            </div>
+            <div class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style="background-color: var(--color-amber-bg); color: var(--color-amber); border: var(--border-w) solid var(--color-amber);">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+              <span>कम है (4 L)</span>
+            </div>
+          </div>
+
+          <!-- Item Card 3: Out of Stock -->
+          <div class="p-3 rounded-xl border flex items-center justify-between" style="border-color: var(--border-color); background-color: var(--color-surface);">
+            <div>
+              <div class="font-bold text-base">टाटा नमक (Tata Salt)</div>
+              <div class="text-xs opacity-75">1 kg पैकेट • ₹28</div>
+            </div>
+            <div class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold" style="background-color: var(--color-red-bg); color: var(--color-red); border: var(--border-w) solid var(--color-red);">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              <span>खत्म (0)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Action Button -->
+        <div class="mt-5">
+          <button class="w-full h-14 rounded-2xl font-bold text-base flex items-center justify-center gap-2 text-white transition-transform active:scale-95" style="background-color: var(--color-primary); border: var(--border-w) solid var(--border-color);">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <span>नया माल जोड़ें (Add Stock)</span>
+          </button>
+        </div>
+
+        <!-- Hero Floating Mic FAB (Simulated Position) -->
+        <div class="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center">
+          <div class="relative flex items-center justify-center">
+            <!-- Sonar Pulse Ring (Active in listening state) -->
+            <div id="micSonar1" class="absolute w-20 h-20 rounded-full opacity-0 pointer-events-none" style="background-color: var(--color-accent);"></div>
+            <div id="micSonar2" class="absolute w-20 h-20 rounded-full opacity-0 pointer-events-none" style="background-color: var(--color-accent);"></div>
+            
+            <button id="heroMicBtn" onclick="toggleMicState()" class="w-18 h-18 rounded-full flex items-center justify-center text-white shadow-xl cursor-pointer relative z-10 transition-all active:scale-90" style="background-color: var(--color-primary); border: var(--border-w) solid var(--border-color);">
+              <svg id="micIconSvg" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+              </svg>
+            </button>
+          </div>
+          <span id="micStateLabel" class="text-xs font-bold mt-1 px-2.5 py-0.5 rounded-full border shadow-sm" style="background-color: var(--color-surface); border-color: var(--border-color);">
+            बोलने के लिए दबाएं (Tap to Speak)
+          </span>
+        </div>
+
+        <!-- Bottom Tab Bar (Fixed Simulation) -->
+        <div class="absolute bottom-0 left-0 right-0 h-16 border-t flex items-center justify-around px-2" style="background-color: var(--color-surface); border-color: var(--border-color);">
+          <div class="flex flex-col items-center text-xs font-bold" style="color: var(--color-primary);">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>स्टॉक</span>
+          </div>
+          <div class="flex flex-col items-center text-xs opacity-60">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+            <span>बहीखाता</span>
+          </div>
+          <div class="flex flex-col items-center text-xs opacity-60">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+            <span>रिपोर्ट</span>
+          </div>
+          <div class="flex flex-col items-center text-xs opacity-60">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span>मदद</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Iconography & Token Inspector Panel -->
+      <div class="space-y-6">
+        
+        <!-- 11 Custom Icons Showcase -->
+        <div class="spec-card rounded-2xl p-5">
+          <h2 class="font-bold text-lg mb-3">11 Solid Icons (Filled Only - Never Thin Line)</h2>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 text-center">
+            
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-primary); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+              </div>
+              <span class="text-xs font-bold">1. Mic (आवाज़)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-primary); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H2v13c0 1.89 1.41 3 3 3h14c1.59 0 3-1.11 3-3V6h-6zm-6-2h4v2h-4V4z"/></svg>
+              </div>
+              <span class="text-xs font-bold">2. Bag (बोरी)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-primary); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-7 2v4h-2V6h2zm-2 12v-4h2v4h-2z"/></svg>
+              </div>
+              <span class="text-xs font-bold">3. Carton (पेटी)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm" style="background-color: var(--color-primary); color: white;">
+                12
+              </div>
+              <span class="text-xs font-bold">4. Dozen (दर्जन)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background-color: var(--color-primary); color: white;">
+                KG
+              </div>
+              <span class="text-xs font-bold">5. Kilo (किलो)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-primary); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+              <span class="text-xs font-bold">6. Litre (लीटर)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs" style="background-color: var(--color-primary); color: white;">
+                QTL
+              </div>
+              <span class="text-xs font-bold">7. Quintal (100k)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-green); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              </div>
+              <span class="text-xs font-bold">8. Add (आवक)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-red); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H5v-2h14v2z"/></svg>
+              </div>
+              <span class="text-xs font-bold">9. Sell (जावक)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-amber); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+              </div>
+              <span class="text-xs font-bold">10. Alert (सचेत)</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1" style="border-color: var(--border-color);">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background-color: var(--color-primary); color: white;">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56z"/></svg>
+              </div>
+              <span class="text-xs font-bold">11. Globe (भाषा)</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Typographic Scale Inspector -->
+        <div class="spec-card rounded-2xl p-5 space-y-3">
+          <h2 class="font-bold text-lg">4-Size Typographic Scale</h2>
+          <div class="space-y-2 border-t pt-3" style="border-color: var(--border-color);">
+            <div class="flex items-baseline justify-between border-b pb-1" style="border-color: var(--border-color);">
+              <span class="text-xs font-mono font-bold uppercase opacity-60">Display (32px / 700)</span>
+              <span class="text-2xl font-bold">₹12,450 • 120 kg</span>
+            </div>
+            <div class="flex items-baseline justify-between border-b pb-1" style="border-color: var(--border-color);">
+              <span class="text-xs font-mono font-bold uppercase opacity-60">Heading (22px / 600)</span>
+              <span class="text-lg font-semibold">नया स्टॉक दर्ज करें</span>
+            </div>
+            <div class="flex items-baseline justify-between border-b pb-1" style="border-color: var(--border-color);">
+              <span class="text-xs font-mono font-bold uppercase opacity-60">Body (17px / 500)</span>
+              <span class="text-base">राइस ब्रैन ऑयल 15 लीटर टीन</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <span class="text-xs font-mono font-bold uppercase opacity-60">Caption (14px / 600)</span>
+              <span class="text-sm font-semibold">10 मिनट पहले अपडेट हुआ</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let isOutdoor = false;
+    let micState = 0; // 0: Idle, 1: Listening, 2: Processing
+
+    function toggleTheme() {
+      isOutdoor = !isOutdoor;
+      const body = document.body;
+      const btn = document.getElementById('themeToggleBtn');
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeBtnText');
+
+      if (isOutdoor) {
+        body.classList.add('outdoor-mode');
+        icon.textContent = '🏠';
+        text.textContent = 'Switch to Ambient Light Mode';
+        btn.classList.remove('bg-amber-400', 'text-amber-950', 'border-amber-600');
+        btn.classList.add('bg-black', 'text-white', 'border-black');
+      } else {
+        body.classList.remove('outdoor-mode');
+        icon.textContent = '☀️';
+        text.textContent = 'Switch to Outdoor Sunlight Mode';
+        btn.classList.add('bg-amber-400', 'text-amber-950', 'border-amber-600');
+        btn.classList.remove('bg-black', 'text-white', 'border-black');
+      }
+    }
+
+    function toggleMicState() {
+      micState = (micState + 1) % 3;
+      const micBtn = document.getElementById('heroMicBtn');
+      const label = document.getElementById('micStateLabel');
+      const ring1 = document.getElementById('micSonar1');
+      const ring2 = document.getElementById('micSonar2');
+
+      if (micState === 0) {
+        // Idle
+        micBtn.style.backgroundColor = 'var(--color-primary)';
+        label.textContent = 'बोलने के लिए दबाएं (Tap to Speak)';
+        ring1.classList.remove('sonar-active');
+        ring2.classList.remove('sonar-active');
+      } else if (micState === 1) {
+        // Listening
+        micBtn.style.backgroundColor = 'var(--color-accent)';
+        label.textContent = 'सुन रहे हैं... बोलिए (Listening...)';
+        ring1.classList.add('sonar-active');
+        ring2.classList.add('sonar-active');
+      } else {
+        // Processing
+        micBtn.style.backgroundColor = '#0C2366';
+        label.textContent = 'समझ रहे हैं... (Processing...)';
+        ring1.classList.remove('sonar-active');
+        ring2.classList.remove('sonar-active');
+      }
+    }
+  </script>
+</body>
+</html>

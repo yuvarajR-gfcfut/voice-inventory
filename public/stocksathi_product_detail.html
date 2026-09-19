@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSathi - Product Detail View</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-family-base: 'Baloo 2', system-ui, -apple-system, sans-serif;
+      --color-primary-blue: #1D4ED8;
+      --color-primary-blue-hover: #1E40AF;
+      --color-warm-accent: #EA580C;
+      --color-stock-green: #15803D;
+      --color-stock-green-bg: #DCFCE7;
+      --color-stock-red: #B91C1C;
+      --color-stock-red-bg: #FEE2E2;
+      --color-stock-amber: #B45309;
+      --color-stock-amber-bg: #FEF3C7;
+      --color-bg-app: #F8FAFC;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #0F172A;
+      --color-text-secondary: #64748B;
+      --color-border-subtle: #E2E8F0;
+      --border-width: 1.5px;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="outdoor"] {
+      --color-primary-blue: #0C2366;
+      --color-primary-blue-hover: #081744;
+      --color-warm-accent: #C2410C;
+      --color-stock-green: #054F26;
+      --color-stock-green-bg: #FFFFFF;
+      --color-stock-red: #7F1D1D;
+      --color-stock-red-bg: #FFFFFF;
+      --color-stock-amber: #78350F;
+      --color-stock-amber-bg: #FFFFFF;
+      --color-bg-app: #FFFFFF;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #000000;
+      --color-text-secondary: #1E293B;
+      --color-border-subtle: #000000;
+      --border-width: 2.5px;
+      --card-shadow: 0 0 0 2px #000000;
+    }
+
+    body {
+      font-family: var(--font-family-base);
+      background-color: var(--color-bg-app);
+      color: var(--color-text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .stepper-btn {
+      transition: all 0.1s ease;
+    }
+
+    .stepper-btn:active {
+      transform: scale(0.92);
+      background-color: #E2E8F0;
+    }
+
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .pulse-mic {
+      animation: pulseSoft 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-start">
+  
+  <!-- Interactive Controller Bar -->
+  <div class="w-full max-w-sm mb-3 flex items-center justify-between text-xs font-bold px-1">
+    <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">Product View • SKU #1042</span>
+    <button onclick="toggleSunlightMode()" id="sunlightBtn" class="px-2.5 py-1 rounded-lg border bg-white shadow-sm flex items-center gap-1 cursor-pointer active:scale-95">
+      <span>☀️</span>
+      <span id="sunlightLabel">Sunlight Mode</span>
+    </button>
+  </div>
+
+  <!-- Mobile Viewport Frame -->
+  <main class="w-full max-w-sm bg-[var(--color-bg-surface)] rounded-3xl border shadow-2xl relative flex flex-col justify-between overflow-hidden" style="border-width: var(--border-width); border-color: var(--color-border-subtle); height: 750px;">
+    
+    <!-- Top Nav Header -->
+    <div class="px-5 pt-4 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
+      <button onclick="alert('Going back to Inventory...')" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-slate-100" style="border-color: var(--color-border-subtle);">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </button>
+      <span class="text-xs font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">माल का विवरण (Details)</span>
+      <button onclick="alert('Share product report')" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-slate-100" style="border-color: var(--color-border-subtle);">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+      </button>
+    </div>
+
+    <!-- Scrollable Middle Canvas -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-28">
+      
+      <!-- 1. Top Section: Product Header & Current Stock Quantity -->
+      <div class="p-3.5 rounded-2xl border flex items-center justify-between gap-3 bg-white" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        <div class="flex items-center gap-3">
+          <!-- 56px Product Icon (Burlap Sack) -->
+          <div class="w-14 h-14 rounded-2xl bg-amber-50 border flex-shrink-0 flex items-center justify-center text-amber-900 shadow-inner" style="border-color: var(--color-border-subtle);">
+            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 6V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H2v13c0 1.89 1.41 3 3 3h14c1.59 0 3-1.11 3-3V6h-6zm-6-2h4v2h-4V4z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-black text-lg leading-tight text-[var(--color-text-primary)]">आशीर्वाद आटा 10kg</h2>
+            <p class="text-xs font-semibold text-[var(--color-text-secondary)]">Aashirvaad Shudh Chakki Atta</p>
+          </div>
+        </div>
+
+        <!-- Quantity in Prominent Bold + Unit + Status -->
+        <div class="text-right flex-shrink-0">
+          <div class="font-black text-2xl tracking-tight text-[var(--color-text-primary)]">18 <span class="text-sm font-extrabold text-[var(--color-text-secondary)]">बोरी</span></div>
+          <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold mt-0.5" style="background-color: var(--color-stock-green-bg); color: var(--color-stock-green);">
+            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+            <span>पर्याप्त स्टॉक</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Horizontal Sparkline Graph (Last 7 Entries Movement) -->
+      <div class="p-4 rounded-2xl border bg-white space-y-2" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        <div class="flex items-center justify-between text-xs font-bold">
+          <span class="text-[var(--color-text-primary)]">स्टॉक गतिविधि (Last 7 Movements)</span>
+          <span class="text-emerald-700 font-extrabold">↑ शुद्ध आवक (+8 बोरी)</span>
+        </div>
+
+        <!-- SVG 7-Point Sparkline -->
+        <div class="h-20 w-full relative pt-2">
+          <svg class="w-full h-full overflow-visible" viewBox="0 0 280 60">
+            <defs>
+              <linearGradient id="sparkGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#16A34A" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#16A34A" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <!-- Area Fill -->
+            <polygon points="0,55 0,45 46,36 92,44 138,26 184,22 230,16 276,4 276,55" fill="url(#sparkGradient)"/>
+            <!-- Line Stroke -->
+            <polyline points="0,45 46,36 92,44 138,26 184,22 230,16 276,4" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- 7 Data Points -->
+            <circle cx="0" cy="45" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
+            <circle cx="46" cy="36" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
+            <circle cx="92" cy="44" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
+            <circle cx="138" cy="26" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
+            <circle cx="184" cy="22" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
+            <circle cx="230" cy="16" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
+            <circle cx="276" cy="4" r="5" fill="#16A34A" stroke="#FFFFFF" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <!-- 7 Entries Bottom Labels -->
+        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-1 border-t" style="border-color: var(--color-border-subtle);">
+          <span>12 Sep</span>
+          <span>13 Sep</span>
+          <span>14 Sep</span>
+          <span>15 Sep</span>
+          <span>16 Sep</span>
+          <span>17 Sep</span>
+          <span class="text-emerald-800 font-black">Today (18)</span>
+        </div>
+      </div>
+
+      <!-- 3. Low-Stock Alert Threshold Stepper Control -->
+      <div class="p-4 rounded-2xl border bg-white space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="font-extrabold text-sm text-[var(--color-text-primary)]">कम स्टॉक चेतावनी (Alert Limit)</div>
+            <div class="text-xs text-[var(--color-text-secondary)]">इस संख्या से कम होने पर चेतावनी मिलेगी</div>
+          </div>
+          <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">Alert</span>
+        </div>
+
+        <!-- Accessible +/- Stepper -->
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <!-- Minus Button -->
+          <button onclick="changeThreshold(-1)" class="stepper-btn w-12 h-12 rounded-xl bg-white border flex items-center justify-center font-black text-2xl text-slate-800 cursor-pointer shadow-sm" style="border-color: var(--color-border-subtle);" aria-label="Decrease alert limit">
+            −
+          </button>
+
+          <!-- Stepper Value Display -->
+          <div class="flex items-baseline gap-1.5">
+            <span id="thresholdVal" class="font-black text-3xl text-[var(--color-text-primary)]">5</span>
+            <span class="font-bold text-sm text-[var(--color-text-secondary)]">बोरी (Bags)</span>
+          </div>
+
+          <!-- Plus Button -->
+          <button onclick="changeThreshold(1)" class="stepper-btn w-12 h-12 rounded-xl bg-white border flex items-center justify-center font-black text-2xl text-slate-800 cursor-pointer shadow-sm" style="border-color: var(--color-border-subtle);" aria-label="Increase alert limit">
+            +
+          </button>
+        </div>
+      </div>
+
+      <!-- 4. Vertically Scrollable Stock History Entries -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold text-[var(--color-text-primary)] px-1">
+          <span>स्टॉक इतिहास (Stock History)</span>
+          <span class="text-[11px] text-slate-400 font-semibold">5 Entries</span>
+        </div>
+
+        <div class="space-y-2">
+          
+          <!-- Entry 1: Voice Addition (Green) -->
+          <div class="p-3 rounded-xl border bg-white flex items-center justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+            <div>
+              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">Today, 10:15 AM</div>
+              <div class="text-[11px] font-semibold text-slate-400">Supplier: ITC Mandi Delivery</div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-black text-base text-emerald-700">+10 बोरी</span>
+              <!-- Voice Microphone Indicator Icon -->
+              <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center" title="Entered via Voice">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Entry 2: Voice Removal (Red) -->
+          <div class="p-3 rounded-xl border bg-white flex items-center justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+            <div>
+              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">Yesterday, 4:30 PM</div>
+              <div class="text-[11px] font-semibold text-slate-400">Retail customer sale</div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-black text-base text-rose-700">−2 बोरी</span>
+              <!-- Voice Microphone Indicator Icon -->
+              <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center" title="Entered via Voice">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Entry 3: Manual Removal (Red with Keyboard Icon) -->
+          <div class="p-3 rounded-xl border bg-white flex items-center justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+            <div>
+              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">17 Sep, 11:00 AM</div>
+              <div class="text-[11px] font-semibold text-slate-400">Manual inventory count adjustment</div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-black text-base text-rose-700">−5 बोरी</span>
+              <!-- Manual Keyboard / Pencil Indicator Icon -->
+              <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center" title="Entered Manually via Keypad">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 5. Bottom-Anchored Voice Action Hub (Prominent Microphone Button) -->
+    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white/95 to-transparent flex flex-col items-center justify-center z-20">
+      
+      <div class="relative flex items-center justify-center">
+        <!-- Pulse glow -->
+        <div class="absolute w-20 h-20 rounded-full bg-blue-400 opacity-25 pulse-mic"></div>
+        
+        <!-- Large Anchored Circular Mic Button (68px) -->
+        <button onclick="triggerQuickVoiceUpdate()" class="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl cursor-pointer relative z-10 transition-transform active:scale-92" style="background-color: var(--color-primary-blue); border: var(--border-width) solid #000000;" aria-label="Tap to speak stock update for this product">
+          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+      </div>
+
+      <span class="text-xs font-bold text-[var(--color-text-primary)] mt-1.5 px-3 py-0.5 rounded-full border bg-white shadow-sm" style="border-color: var(--color-border-subtle);">
+        बोलकर अपडेट करें (Say: "2 बोरी बिका")
+      </span>
+    </div>
+
+  </main>
+
+  <script>
+    let threshold = 5;
+    let isSunlight = false;
+
+    function changeThreshold(delta) {
+      threshold = Math.max(1, threshold + delta);
+      document.getElementById('thresholdVal').textContent = threshold;
+    }
+
+    function triggerQuickVoiceUpdate() {
+      alert("🎙️ Quick Voice Update Triggered for Aashirvaad Atta!\nSpeak command:\n• '2 bori bika' (Stock OUT)\n• '10 bori aaya' (Stock IN)");
+    }
+
+    function toggleSunlightMode() {
+      isSunlight = !isSunlight;
+      const html = document.documentElement;
+      const btn = document.getElementById('sunlightBtn');
+      const label = document.getElementById('sunlightLabel');
+
+      if (isSunlight) {
+        html.setAttribute('data-theme', 'outdoor');
+        label.textContent = "Normal Mode";
+        btn.classList.add('bg-black', 'text-white');
+      } else {
+        html.removeAttribute('data-theme');
+        label.textContent = "Sunlight Mode";
+        btn.classList.remove('bg-black', 'text-white');
+      }
+    }
+  </script>
+</body>
+</html>

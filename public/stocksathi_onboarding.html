@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSathi - First Launch Onboarding</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Telugu:wght@500;600;700&family=Noto+Sans+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-family-base: 'Baloo 2', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, sans-serif;
+      --color-primary-blue: #1D4ED8;
+      --color-primary-blue-hover: #1E40AF;
+      --color-warm-accent: #EA580C;
+      --color-warm-accent-bg: #FFF7ED;
+      --color-warm-accent-border: #EA580C;
+      --color-bg-app: #F8FAFC;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #0F172A;
+      --color-text-secondary: #475569;
+      --color-border-subtle: #E2E8F0;
+      --color-border-strong: #0F172A;
+      --color-btn-disabled-bg: #E2E8F0;
+      --color-btn-disabled-text: #94A3B8;
+      --border-width: 1.5px;
+      --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.05);
+      --shadow-selected: 0 4px 14px rgba(234, 88, 12, 0.18);
+    }
+
+    [data-theme="outdoor"] {
+      --color-primary-blue: #0C2366;
+      --color-primary-blue-hover: #081744;
+      --color-warm-accent: #C2410C;
+      --color-warm-accent-bg: #FFFFFF;
+      --color-warm-accent-border: #C2410C;
+      --color-bg-app: #FFFFFF;
+      --color-bg-surface: #FFFFFF;
+      --color-text-primary: #000000;
+      --color-text-secondary: #1E293B;
+      --color-border-subtle: #000000;
+      --color-border-strong: #000000;
+      --color-btn-disabled-bg: #F1F5F9;
+      --color-btn-disabled-text: #475569;
+      --border-width: 2.5px;
+      --shadow-card: 0 0 0 2px #000000;
+      --shadow-selected: 0 0 0 3px #C2410C;
+    }
+
+    body {
+      font-family: var(--font-family-base);
+      background-color: var(--color-bg-app);
+      color: var(--color-text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .lang-card {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .lang-card:active {
+      transform: scale(0.98);
+    }
+
+    .lang-card.is-selected {
+      background-color: var(--color-warm-accent-bg);
+      border-color: var(--color-warm-accent-border);
+      box-shadow: var(--shadow-selected);
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-start">
+  
+  <!-- Global System Controls Banner -->
+  <div class="w-full max-w-md mb-4 flex items-center justify-between text-xs font-bold px-2">
+    <span class="flex items-center gap-1.5 text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">
+      <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+      StockSathi Onboarding v1.0
+    </span>
+    <button onclick="toggleOutdoorMode()" class="px-3 py-1.5 rounded-lg border flex items-center gap-1.5 cursor-pointer bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all" id="sunlightToggleBtn">
+      <span>☀️</span>
+      <span id="sunlightText">Outdoor Sunlight Mode</span>
+    </button>
+  </div>
+
+  <!-- Mobile Device Simulation Frame -->
+  <main class="w-full max-w-md bg-[var(--color-bg-surface)] rounded-3xl border p-6 shadow-xl relative" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+    
+    <!-- App Brand Header -->
+    <header class="flex items-center justify-between pb-4 border-b" style="border-color: var(--border-subtle);">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-white text-lg shadow-sm" style="background-color: var(--color-primary-blue);">
+          <span>SS</span>
+        </div>
+        <div>
+          <h2 class="font-extrabold text-lg leading-tight">StockSathi</h2>
+          <p class="text-xs font-semibold text-[var(--color-text-secondary)]">स्टॉक साथी • కిరాణా సహాయకుడు</p>
+        </div>
+      </div>
+      <span class="text-xs font-bold px-2 py-1 rounded bg-slate-100 text-slate-700">Step 1 of 1</span>
+    </header>
+
+    <!-- Trilingual Headline -->
+    <section class="mt-6 mb-5">
+      <h1 class="text-xl font-bold leading-snug tracking-tight text-[var(--color-text-primary)]">
+        Choose your language <span class="opacity-50">/</span><br>
+        अपनी भाषा चुनें <span class="opacity-50">/</span><br>
+        <span class="text-blue-700">మీ భాషను ఎంచుకోండి</span>
+      </h1>
+      <p class="text-xs font-medium text-[var(--color-text-secondary)] mt-1.5">
+        Touch your daily spoken language to begin.
+      </p>
+    </section>
+
+    <!-- Language Selection Vertical List -->
+    <section class="space-y-3" role="radiogroup" aria-label="Spoken language selection">
+      
+      <!-- Option 1: Hindi -->
+      <div id="card-hi" onclick="selectLanguage('hi')" class="lang-card w-full p-4 rounded-2xl border flex items-center justify-between cursor-pointer" style="border-width: var(--border-width); border-color: var(--color-border-subtle);" role="radio" aria-checked="false" tabindex="0">
+        <div class="flex items-center gap-3.5">
+          <!-- Culturally appropriate Diya / Deepam icon (No Flags) -->
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-amber-700 bg-amber-50 border border-amber-200">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+              <!-- Traditional Diya / Deepam lamp motif -->
+              <path d="M12 2c.55 1.5 2 3.5 2 5.5 0 2.2-1.79 4-4 4s-4-1.8-4-4c0-2 1.45-4 2-5.5.55 1.5 1.5 2.5 2 2.5s1.45-1 2-2.5z"/>
+              <path d="M4 14c0 3.86 3.58 7 8 7s8-3.14 8-7c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-extrabold text-xl text-[var(--color-text-primary)]">हिन्दी</div>
+            <div class="text-xs font-semibold text-[var(--color-text-secondary)]">Hindi • 45 Cr+ Speakers</div>
+          </div>
+        </div>
+        <!-- Radio / Checkmark Indicator -->
+        <div id="check-hi" class="w-7 h-7 rounded-full border-2 border-slate-300 flex items-center justify-center transition-all">
+          <svg class="w-4 h-4 text-white hidden" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Option 2: Telugu -->
+      <div id="card-te" onclick="selectLanguage('te')" class="lang-card w-full p-4 rounded-2xl border flex items-center justify-between cursor-pointer" style="border-width: var(--border-width); border-color: var(--color-border-subtle);" role="radio" aria-checked="false" tabindex="0">
+        <div class="flex items-center gap-3.5">
+          <!-- Culturally appropriate Poornakumbham / Kalash icon (No Flags) -->
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-emerald-800 bg-emerald-50 border border-emerald-200">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+              <!-- Kalash / Auspicious Coconut & Mango leaves motif -->
+              <circle cx="12" cy="5" r="3"/>
+              <path d="M8 8c-1.5 1-2 3-2 5 2 0 3-1 4-2-.5-1-1-2-2-3z"/>
+              <path d="M16 8c1.5 1 2 3 2 5-2 0-3-1-4-2 .5-1 1-2 2-3z"/>
+              <path d="M6 15c0 3.31 2.69 6 6 6s6-2.69 6-6H6z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-extrabold text-xl text-[var(--color-text-primary)]">తెలుగు</div>
+            <div class="text-xs font-semibold text-[var(--color-text-secondary)]">Telugu • 9 Cr+ Speakers</div>
+          </div>
+        </div>
+        <!-- Radio / Checkmark Indicator -->
+        <div id="check-te" class="w-7 h-7 rounded-full border-2 border-slate-300 flex items-center justify-center transition-all">
+          <svg class="w-4 h-4 text-white hidden" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Option 3: English -->
+      <div id="card-en" onclick="selectLanguage('en')" class="lang-card w-full p-4 rounded-2xl border flex items-center justify-between cursor-pointer" style="border-width: var(--border-width); border-color: var(--color-border-subtle);" role="radio" aria-checked="false" tabindex="0">
+        <div class="flex items-center gap-3.5">
+          <!-- Culturally appropriate Global Trade / Ledger Quill icon (No Flags) -->
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-blue-700 bg-blue-50 border border-blue-200">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-extrabold text-xl text-[var(--color-text-primary)]">English</div>
+            <div class="text-xs font-semibold text-[var(--color-text-secondary)]">Indian English & Commercial Terms</div>
+          </div>
+        </div>
+        <!-- Radio / Checkmark Indicator -->
+        <div id="check-en" class="w-7 h-7 rounded-full border-2 border-slate-300 flex items-center justify-center transition-all">
+          <svg class="w-4 h-4 text-white hidden" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Reassurance Message (Mixed Speech / Code-Switching) -->
+    <div class="my-5 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-start gap-3">
+      <div class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center bg-amber-500 text-white mt-0.5 shadow-sm">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-amber-950 leading-relaxed">
+          You can speak in more than one language at once — StockSathi understands mixed speech.
+        </p>
+        <p class="text-[11px] font-medium text-amber-800 mt-0.5">
+          (उदा: "10 packet aata bika", "sugar 5 kg unnai", "give invoice")
+        </p>
+      </div>
+    </div>
+
+    <!-- Minimal 2 Input Fields -->
+    <section class="space-y-3.5 mb-6">
+      
+      <!-- Field 1: Shop Name -->
+      <div>
+        <label for="shopNameInput" class="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
+          दुकान का नाम / షాప్ పేరు / SHOP NAME
+        </label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3.5 text-slate-400">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 8h1v8h14v-8h1a1 1 0 0 1 1 1v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a1 1 0 0 1 1-1z"/>
+            </svg>
+          </span>
+          <input id="shopNameInput" type="text" placeholder="उदा. माँ लक्ष्मी किराना स्टोर्स" class="w-full h-14 pl-11 pr-4 rounded-xl border font-semibold text-base focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        </div>
+      </div>
+
+      <!-- Field 2: Phone Number -->
+      <div>
+        <label for="phoneInput" class="block text-xs font-bold text-[var(--color-text-secondary)] mb-1">
+          फ़ोन नंबर / ఫోన్ నంబర్ / PHONE NUMBER
+        </label>
+        <div class="relative flex items-center">
+          <div class="absolute left-3 flex items-center gap-1 font-bold text-sm text-slate-700 border-r pr-2.5 h-7">
+            <span class="text-xs">🇮🇳</span>
+            <span>+91</span>
+          </div>
+          <input id="phoneInput" type="tel" maxlength="10" placeholder="98765 43210" class="w-full h-14 pl-20 pr-4 rounded-xl border font-bold text-base tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Primary CTA: Continue Button (Initially Disabled) -->
+    <footer>
+      <button id="continueBtn" disabled onclick="handleContinue()" class="w-full h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 cursor-not-allowed transition-all" style="background-color: var(--color-btn-disabled-bg); color: var(--color-btn-disabled-text); border: var(--border-width) solid transparent;">
+        <span id="btnLabel">आगे बढ़ें / Continue</span>
+        <svg id="btnArrow" class="w-5 h-5 opacity-40" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42 5.43 5.43H5v2z"/>
+        </svg>
+      </button>
+      <p id="ctaStatusHelp" class="text-center text-xs font-semibold text-amber-700 mt-2">
+        ⚠️ कृपया पहले अपनी भाषा चुनें (Please select a language first)
+      </p>
+    </footer>
+
+  </main>
+
+  <script>
+    let selectedLang = null;
+    let isOutdoor = false;
+
+    function selectLanguage(lang) {
+      selectedLang = lang;
+      
+      const cards = ['hi', 'te', 'en'];
+      cards.forEach(id => {
+        const card = document.getElementById('card-' + id);
+        const check = document.getElementById('check-' + id);
+        const checkSvg = check.querySelector('svg');
+
+        if (id === lang) {
+          card.classList.add('is-selected');
+          card.setAttribute('aria-checked', 'true');
+          check.classList.remove('border-slate-300');
+          check.style.backgroundColor = 'var(--color-warm-accent)';
+          check.style.borderColor = 'var(--color-warm-accent)';
+          checkSvg.classList.remove('hidden');
+        } else {
+          card.classList.remove('is-selected');
+          card.setAttribute('aria-checked', 'false');
+          check.style.backgroundColor = 'transparent';
+          check.style.borderColor = '#cbd5e1';
+          check.classList.add('border-slate-300');
+          checkSvg.classList.add('hidden');
+        }
+      });
+
+      // Enable Continue Button
+      const continueBtn = document.getElementById('continueBtn');
+      const btnArrow = document.getElementById('btnArrow');
+      const ctaStatusHelp = document.getElementById('ctaStatusHelp');
+      const btnLabel = document.getElementById('btnLabel');
+
+      continueBtn.disabled = false;
+      continueBtn.classList.remove('cursor-not-allowed');
+      continueBtn.classList.add('cursor-pointer', 'active:scale-97', 'shadow-lg');
+      continueBtn.style.backgroundColor = 'var(--color-primary-blue)';
+      continueBtn.style.color = '#FFFFFF';
+      btnArrow.classList.remove('opacity-40');
+      btnArrow.classList.add('opacity-100');
+
+      if (lang === 'hi') {
+        btnLabel.textContent = 'आगे बढ़ें (Continue)';
+        ctaStatusHelp.innerHTML = '✓ भाषा चुनी गई: <span class="font-bold">हिन्दी</span>';
+        ctaStatusHelp.className = 'text-center text-xs font-bold text-emerald-700 mt-2';
+      } else if (lang === 'te') {
+        btnLabel.textContent = 'కొనసాగించండి (Continue)';
+        ctaStatusHelp.innerHTML = '✓ భాష ఎంచుకోబడింది: <span class="font-bold">తెలుగు</span>';
+        ctaStatusHelp.className = 'text-center text-xs font-bold text-emerald-700 mt-2';
+      } else {
+        btnLabel.textContent = 'Continue (आगे बढ़ें)';
+        ctaStatusHelp.innerHTML = '✓ Language selected: <span class="font-bold">English</span>';
+        ctaStatusHelp.className = 'text-center text-xs font-bold text-emerald-700 mt-2';
+      }
+    }
+
+    function toggleOutdoorMode() {
+      isOutdoor = !isOutdoor;
+      const body = document.documentElement;
+      const text = document.getElementById('sunlightText');
+      const btn = document.getElementById('sunlightToggleBtn');
+
+      if (isOutdoor) {
+        body.setAttribute('data-theme', 'outdoor');
+        text.textContent = 'Normal Light Mode';
+        btn.classList.add('bg-black', 'text-white');
+      } else {
+        body.removeAttribute('data-theme');
+        text.textContent = 'Outdoor Sunlight Mode';
+        btn.classList.remove('bg-black', 'text-white');
+      }
+
+      // Re-apply language styling if selected
+      if (selectedLang) {
+        selectLanguage(selectedLang);
+      }
+    }
+
+    function handleContinue() {
+      if (!selectedLang) return;
+      alert(`Welcome to StockSathi!\nLanguage configured: ${selectedLang.toUpperCase()}\nApp is ready for voice inventory.`);
+    }
+  </script>
+</body>
+</html>
