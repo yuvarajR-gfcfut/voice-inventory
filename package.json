@@ -1,0 +1,15 @@
+{
+  "name": "voice-inventory",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "verify": "node --env-file=.env scripts/verify-setup.mjs",
+    "test": "node --test tests/"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0"
+  }
+}
