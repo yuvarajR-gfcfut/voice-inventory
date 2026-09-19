@@ -12,6 +12,7 @@
   <script src="/vendor/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/speech.js"></script>
   <script>
     window.VI.auth.requireSession().then(async (session) => {
       if (!session) return;
@@ -117,16 +118,26 @@
     }
   </style>
 </head>
-<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-start">
+<body class="min-h-screen p-2 sm:p-4 flex flex-col items-center justify-start">
   
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xl transition-all duration-300 z-50 max-w-[90vw] text-center opacity-0 pointer-events-none"></div>
+
   <!-- Interactive State Controller Bar (For Testing & Review) -->
-  <div class="w-full max-w-sm mb-4 space-y-2">
+  <div class="w-full max-w-sm mb-3 space-y-2">
     <div class="flex items-center justify-between text-xs font-bold px-1">
       <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">StockSathi Voice Engine</span>
       <button onclick="toggleOutdoorTheme()" id="outdoorBtn" class="px-2.5 py-1 rounded-lg border bg-white shadow-sm flex items-center gap-1 cursor-pointer active:scale-95">
         <span>☀️</span>
         <span id="outdoorText">Sunlight Mode</span>
       </button>
+    </div>
+
+    <!-- Language Selector Chips -->
+    <div class="grid grid-cols-3 gap-1 p-1 bg-slate-200/80 rounded-xl text-[11px] font-bold text-center">
+      <button type="button" onclick="setSpeechLang('hi-IN')" id="lang-hi" class="py-1 rounded-lg bg-white shadow text-blue-800 font-bold">🇮🇳 हिन्दी (hi-IN)</button>
+      <button type="button" onclick="setSpeechLang('en-IN')" id="lang-en" class="py-1 rounded-lg text-slate-700 font-medium">English (en-IN)</button>
+      <button type="button" onclick="setSpeechLang('te-IN')" id="lang-te" class="py-1 rounded-lg text-slate-700 font-medium">తెలుగు (te-IN)</button>
     </div>
 
     <!-- Manual State Jump Buttons -->
@@ -148,7 +159,7 @@
           माँ लक्ष्मी किराना स्टोर्स
         </h1>
         <p class="text-xs font-semibold text-[var(--color-text-secondary)] mt-0.5">
-          Maa Lakshmi Stores • Today 19 Sep 2026
+          Maa Lakshmi Stores • Today
         </p>
       </div>
       <div id="dashboardAvatar" onclick="window.VI.auth.signOut()" title="Sign Out / Log Out" class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 text-slate-700 text-xs font-bold border cursor-pointer hover:bg-slate-200 active:scale-95 transition-all" style="border-color: var(--color-border-subtle);">
@@ -157,7 +168,7 @@
     </header>
 
     <!-- Center Interactive Hub: Voice Hero Element -->
-    <section class="flex-1 flex flex-col items-center justify-center px-6 py-2 -mt-4">
+    <section class="flex-1 flex flex-col items-center justify-center px-6 py-2 -mt-2">
       
       <!-- Dominant Circular Mic Button (96px) -->
       <div class="relative flex items-center justify-center mb-4">
@@ -169,8 +180,8 @@
         <!-- Spinner Ring for Processing State -->
         <div id="spinnerRing" class="absolute w-28 h-28 rounded-full border-4 border-transparent border-t-blue-600 border-r-blue-400 opacity-0 pointer-events-none spinner-ring"></div>
 
-        <!-- The Hero 96px Button -->
-        <button id="mainMicButton" onclick="advanceMicState()" class="w-24 h-24 rounded-full flex items-center justify-center text-white cursor-pointer relative z-10 transition-all duration-200 active:scale-92" style="background-color: var(--color-primary-blue); box-shadow: var(--shadow-fab-idle);" aria-label="Tap to speak inventory command">
+        <!-- The Hero 96px Button (Reused Milestone-1 element) -->
+        <button id="mainMicButton" onclick="handleMicToggle()" class="w-24 h-24 rounded-full flex items-center justify-center text-white cursor-pointer relative z-10 transition-all duration-200 active:scale-92" style="background-color: var(--color-primary-blue); box-shadow: var(--shadow-fab-idle);" aria-label="Tap to speak inventory command">
           
           <!-- State 1: Solid Microphone Icon (Idle) -->
           <svg id="iconMicSolid" class="w-11 h-11 transition-transform" viewBox="0 0 24 24" fill="currentColor">
@@ -187,7 +198,7 @@
             <span class="wave-bar w-1.5 bg-white rounded-full"></span>
           </div>
 
-          <!-- State 3: Thinking Dots / Internal Symbol (Processing) -->
+          <!-- State 3: Thinking Dots (Processing) -->
           <div id="iconProcessing" class="hidden text-xs font-black tracking-widest uppercase">
             ...
           </div>
@@ -220,15 +231,15 @@
         </div>
 
         <!-- Error State Retry Label -->
-        <div id="labelError" class="hidden flex items-center gap-1.5 text-xs font-extrabold text-amber-900 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-300 shadow-sm cursor-pointer" onclick="setMicState('listening')">
+        <div id="labelError" class="hidden flex items-center gap-1.5 text-xs font-extrabold text-amber-900 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-300 shadow-sm cursor-pointer" onclick="handleMicToggle()">
           <span>⚠️</span>
           <span>Didn't catch that — try again? (फिर से बोलें)</span>
         </div>
 
       </div>
 
-      <!-- Zone 3: Learning-by-Example Line (Auto-rotating every 3.5s) -->
-      <div class="mt-4 w-full flex justify-center">
+      <!-- Zone 3: Learning-by-Example Line -->
+      <div class="mt-3 w-full flex justify-center">
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100/90 border text-xs font-medium text-slate-800 transition-all cursor-pointer" style="border-color: var(--color-border-subtle);" onclick="rotateExamplePhrase()">
           <span class="text-sm">🗣️</span>
           <span id="examplePhrase" class="fade-rotate font-semibold">Try saying: 2 bags sugar aa gaya</span>
@@ -236,13 +247,13 @@
         </div>
       </div>
 
-      <!-- Zone 4: Today's Snapshot Stats Row (3 Compact Chips) -->
-      <div class="mt-6 w-full grid grid-cols-3 gap-2.5">
+      <!-- Zone 4: Today's Snapshot Stats Row -->
+      <div class="mt-4 w-full grid grid-cols-3 gap-2.5">
         
-        <!-- Stat 1: Total Products (Neutral) -->
+        <!-- Stat 1: Total Products -->
         <div class="p-2.5 rounded-2xl border text-center flex flex-col justify-between" style="background-color: var(--color-bg-surface); border-width: var(--border-width); border-color: var(--color-border-subtle);">
           <div class="w-4 h-1 bg-slate-300 rounded-full mx-auto mb-1"></div>
-          <div class="font-extrabold text-2xl text-[var(--color-text-primary)]">142</div>
+          <div id="statTotalProducts" class="font-extrabold text-2xl text-[var(--color-text-primary)]">0</div>
           <div class="text-[11px] font-semibold text-[var(--color-text-secondary)] leading-tight">Total Products</div>
         </div>
 
@@ -252,7 +263,7 @@
             <span>⚠️</span>
             <span>Low</span>
           </div>
-          <div class="font-extrabold text-2xl text-[#78350F]">8</div>
+          <div id="statLowStock" class="font-extrabold text-2xl text-[#78350F]">0</div>
           <div class="text-[11px] font-bold text-[#78350F] leading-tight">कम स्टॉक</div>
         </div>
 
@@ -262,33 +273,32 @@
             <span>✕</span>
             <span>Empty</span>
           </div>
-          <div class="font-extrabold text-2xl text-[#7F1D1D]">3</div>
+          <div id="statOutOfStock" class="font-extrabold text-2xl text-[#7F1D1D]">0</div>
           <div class="text-[11px] font-bold text-[#7F1D1D] leading-tight">खत्म माल</div>
         </div>
 
       </div>
 
-      <!-- Zone 5: Secondary "Type Instead" Link -->
-      <div class="mt-5">
-        <button onclick="promptManualEntry()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-text-secondary)] hover:text-slate-900 transition-colors p-1 rounded-lg">
-          <svg class="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/>
-          </svg>
-          <span class="underline decoration-dotted underline-offset-4">Type instead (हाथ से लिखें)</span>
-        </button>
+      <!-- Zone 5: Typed Input Fallback (Always visible and usable) -->
+      <div class="mt-4 w-full">
+        <div class="relative flex items-center">
+          <input id="commandInput" type="text" placeholder="Type stock command... (हाथ से लिखें, e.g. 2 bags sugar)" class="w-full h-11 pl-9 pr-3 rounded-xl border text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <span class="absolute left-3 text-slate-400 pointer-events-none">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+          </span>
+        </div>
       </div>
 
     </section>
 
-    <!-- Zone 6: Fixed 4-Item Bottom Tab Bar -->
+    <!-- Fixed Bottom Tab Bar -->
     <footer class="h-16 border-t flex items-center justify-around px-2" style="background-color: var(--color-bg-surface); border-color: var(--color-border-subtle); border-width: var(--border-width) 0 0 0;">
       
-      <!-- Tab 1: Home (Active Mic) -->
+      <!-- Tab 1: Home (Active) -->
       <button class="flex flex-col items-center justify-center flex-1 h-full relative cursor-pointer" style="color: var(--color-primary-blue);">
         <div class="absolute top-0 w-8 h-1 rounded-full" style="background-color: var(--color-primary-blue);"></div>
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
         </svg>
         <span class="text-[11px] font-extrabold mt-0.5">Home</span>
       </button>
@@ -307,7 +317,6 @@
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
           </svg>
-          <!-- Unread Dot Indicator -->
           <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full"></span>
         </div>
         <span class="text-[11px] font-medium mt-0.5">Alerts</span>
@@ -328,7 +337,8 @@
   <script>
     let currentState = 'idle';
     let isOutdoor = false;
-    
+    let currentSpeechLang = 'hi-IN';
+
     // Rotating example phrases
     const phrases = [
       "Try saying: 2 bags sugar aa gaya",
@@ -341,6 +351,7 @@
     function rotateExamplePhrase() {
       phraseIndex = (phraseIndex + 1) % phrases.length;
       const el = document.getElementById('examplePhrase');
+      if (!el) return;
       el.style.opacity = '0';
       el.style.transform = 'translateY(4px)';
       setTimeout(() => {
@@ -350,8 +361,35 @@
       }, 180);
     }
 
-    // Auto rotate every 4 seconds
     setInterval(rotateExamplePhrase, 4000);
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.className = `fixed top-5 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xl transition-all duration-300 z-50 max-w-[90vw] text-center ${
+        isError ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'
+      }`;
+      toast.style.opacity = '1';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 3500);
+    }
+
+    function setSpeechLang(lang) {
+      currentSpeechLang = lang;
+      ['hi', 'en', 'te'].forEach(prefix => {
+        const btn = document.getElementById('lang-' + prefix);
+        if (btn) {
+          if (lang.startsWith(prefix)) {
+            btn.className = 'py-1 rounded-lg bg-white shadow text-blue-800 font-bold';
+          } else {
+            btn.className = 'py-1 rounded-lg text-slate-700 font-medium';
+          }
+        }
+      });
+    }
 
     function setMicState(state) {
       currentState = state;
@@ -371,9 +409,10 @@
       const lblProc = document.getElementById('labelProcessing');
       const lblErr = document.getElementById('labelError');
 
-      // Update tester buttons
+      // Update state preview buttons
       ['idle', 'listening', 'processing', 'error'].forEach(s => {
         const btn = document.getElementById('btn-' + s);
+        if (!btn) return;
         if (s === state) {
           btn.className = 'py-1.5 rounded-lg bg-white shadow text-blue-800 font-bold';
         } else {
@@ -420,23 +459,18 @@
       }
     }
 
-    function advanceMicState() {
-      if (currentState === 'idle') {
-        setMicState('listening');
-        // Auto simulate progression after speech
-        setTimeout(() => {
-          if (currentState === 'listening') setMicState('processing');
-        }, 3200);
-        setTimeout(() => {
-          if (currentState === 'processing') setMicState('error');
-        }, 5800);
-      } else if (currentState === 'listening') {
-        setMicState('processing');
-        setTimeout(() => setMicState('idle'), 2000);
-      } else if (currentState === 'processing') {
-        setMicState('idle');
-      } else if (currentState === 'error') {
-        setMicState('listening');
+    function handleMicToggle() {
+      if (window.VI && window.VI.speech) {
+        if (window.VI.speech.isListening()) {
+          window.VI.speech.stopListening();
+        } else {
+          if (!window.VI.speech.isSupported()) {
+            showToast('Voice recognition is not supported on this browser. Please type below.', true);
+            document.getElementById('commandInput')?.focus();
+            return;
+          }
+          window.VI.speech.startListening(currentSpeechLang);
+        }
       }
     }
 
@@ -458,9 +492,68 @@
       setMicState(currentState);
     }
 
-    function promptManualEntry() {
-      alert("Manual Entry Fallback Triggered: Opens full keyboard inventory entry form.");
+    // Load live inventory stats from /api/products
+    async function loadDashboardStats() {
+      try {
+        const products = await window.VI.api('/products');
+        if (Array.isArray(products)) {
+          let low = 0;
+          let out = 0;
+          products.forEach(p => {
+            const qty = Number(p.current_qty) || 0;
+            const thresh = Number(p.low_stock_threshold) || 0;
+            if (qty <= 0) out++;
+            else if (qty <= thresh) low++;
+          });
+          const totalEl = document.getElementById('statTotalProducts');
+          if (totalEl) totalEl.textContent = products.length;
+          const lowEl = document.getElementById('statLowStock');
+          if (lowEl) lowEl.textContent = low;
+          const outEl = document.getElementById('statOutOfStock');
+          if (outEl) outEl.textContent = out;
+        }
+      } catch (_) {}
     }
+
+    // Connect speech events on DOM ready
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDashboardStats();
+
+      if (window.VI && window.VI.speech) {
+        window.VI.speech.onStart(() => {
+          setMicState('listening');
+        });
+
+        window.VI.speech.onPartial((transcript) => {
+          const input = document.getElementById('commandInput');
+          if (input) {
+            input.value = transcript;
+          }
+        });
+
+        window.VI.speech.onFinal((transcript) => {
+          const input = document.getElementById('commandInput');
+          if (input) {
+            input.value = transcript;
+            input.focus();
+          }
+          setMicState('idle');
+        });
+
+        window.VI.speech.onError((code, details) => {
+          setMicState('error');
+          const msg = details?.message || window.VI.speech.getErrorMessage(code);
+          showToast(msg, true);
+          document.getElementById('commandInput')?.focus();
+        });
+
+        window.VI.speech.onEnd(() => {
+          if (currentState === 'listening') {
+            setMicState('idle');
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>
