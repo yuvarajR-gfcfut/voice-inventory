@@ -1,0 +1,440 @@
+[
+  {
+    "sentence": "Received 5 bags of sugar",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "sugar", "qty": 5, "unit": "bag" }]
+    }
+  },
+  {
+    "sentence": "Sold 3 packets of milk",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "milk", "qty": 3, "unit": "packet" }]
+    }
+  },
+  {
+    "sentence": "Add 10 kg wheat flour",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "wheat flour", "qty": 10, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "Sold 2 dozen eggs",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "eggs", "qty": 2, "unit": "dozen" }]
+    }
+  },
+  {
+    "sentence": "Got 4 boxes of tea",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "tea", "qty": 4, "unit": "box" }]
+    }
+  },
+  {
+    "sentence": "Used 500 g butter",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "butter", "qty": 500, "unit": "g" }]
+    }
+  },
+  {
+    "sentence": "Added 20 litres of oil",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "oil", "qty": 20, "unit": "l" }]
+    }
+  },
+  {
+    "sentence": "Dispatched 15 pieces soap",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "soap", "qty": 15, "unit": "pcs" }]
+    }
+  },
+  {
+    "sentence": "Bought 2 quintals rice",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "rice", "qty": 2, "unit": "quintal" }]
+    }
+  },
+  {
+    "sentence": "Sold 6 bottles juice",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "juice", "qty": 6, "unit": "bottle" }]
+    }
+  },
+  {
+    "sentence": "Received 10 packets biscuit",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "biscuit", "qty": 10, "unit": "packet" }]
+    }
+  },
+  {
+    "sentence": "Gave 1 bag salt",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "salt", "qty": 1, "unit": "bag" }]
+    }
+  },
+  {
+    "sentence": "Restocked 8 cans ghee",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "ghee", "qty": 8, "unit": "can" }]
+    }
+  },
+  {
+    "sentence": "Sold 5 kg sugar",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "sugar", "qty": 5, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "How much sugar is left?",
+    "expected": {
+      "action": "query_stock",
+      "items": [{ "product_hint": "sugar", "qty": null, "unit": null }]
+    }
+  },
+  {
+    "sentence": "Check stock of tea",
+    "expected": {
+      "action": "query_stock",
+      "items": [{ "product_hint": "tea", "qty": null, "unit": null }]
+    }
+  },
+  {
+    "sentence": "Show low stock items",
+    "expected": {
+      "action": "query_low",
+      "items": []
+    }
+  },
+  {
+    "sentence": "Set stock of rice to 50 kg",
+    "expected": {
+      "action": "adjust",
+      "items": [{ "product_hint": "rice", "qty": 50, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "Received 2 bags sugar and 5 packets oil",
+    "expected": {
+      "action": "in",
+      "items": [
+        { "product_hint": "sugar", "qty": 2, "unit": "bag" },
+        { "product_hint": "oil", "qty": 5, "unit": "packet" }
+      ]
+    }
+  },
+  {
+    "sentence": "Sold 3 kg onion and 2 kg potato",
+    "expected": {
+      "action": "out",
+      "items": [
+        { "product_hint": "onion", "qty": 3, "unit": "kg" },
+        { "product_hint": "potato", "qty": 2, "unit": "kg" }
+      ]
+    }
+  },
+  {
+    "sentence": "2 bags sugar aa gaya",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "sugar", "qty": 2, "unit": "bag" }]
+    }
+  },
+  {
+    "sentence": "5 packet refined oil bika",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "refined oil", "qty": 5, "unit": "packet" }]
+    }
+  },
+  {
+    "sentence": "10 kg aata aaya",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "aata", "qty": 10, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "teen bori chawal mila",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "chawal", "qty": 3, "unit": "bag" }]
+    }
+  },
+  {
+    "sentence": "do litre tel becha",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "tel", "qty": 2, "unit": "l" }]
+    }
+  },
+  {
+    "sentence": "2 kilo cheeni de do",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "cheeni", "qty": 2, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "char peti biscuit aa gayi",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "biscuit", "qty": 4, "unit": "box" }]
+    }
+  },
+  {
+    "sentence": "ek darjan anda bika",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "anda", "qty": 1, "unit": "dozen" }]
+    }
+  },
+  {
+    "sentence": "500 gram makhan diya",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "makhan", "qty": 500, "unit": "g" }]
+    }
+  },
+  {
+    "sentence": "paanch bori gehu laaya",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "gehu", "qty": 5, "unit": "bag" }]
+    }
+  },
+  {
+    "sentence": "10 packet namak khareeda",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "namak", "qty": 10, "unit": "packet" }]
+    }
+  },
+  {
+    "sentence": "saat botal sharbat becha",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "sharbat", "qty": 7, "unit": "bottle" }]
+    }
+  },
+  {
+    "sentence": "aath piece sabun nikala",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "sabun", "qty": 8, "unit": "pcs" }]
+    }
+  },
+  {
+    "sentence": "Aata kitna bacha hai?",
+    "expected": {
+      "action": "query_stock",
+      "items": [{ "product_hint": "aata", "qty": null, "unit": null }]
+    }
+  },
+  {
+    "sentence": "Chawal kitna pada hai?",
+    "expected": {
+      "action": "query_stock",
+      "items": [{ "product_hint": "chawal", "qty": null, "unit": null }]
+    }
+  },
+  {
+    "sentence": "Kya khatam hone wala hai?",
+    "expected": {
+      "action": "query_low",
+      "items": []
+    }
+  },
+  {
+    "sentence": "Cheeni ka stock 20 kg barabar karo",
+    "expected": {
+      "action": "adjust",
+      "items": [{ "product_hint": "cheeni", "qty": 20, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "10 kg chawal aur 5 kg daal aaya",
+    "expected": {
+      "action": "in",
+      "items": [
+        { "product_hint": "chawal", "qty": 10, "unit": "kg" },
+        { "product_hint": "daal", "qty": 5, "unit": "kg" }
+      ]
+    }
+  },
+  {
+    "sentence": "do bori cheeni aur teen packet tel bika",
+    "expected": {
+      "action": "out",
+      "items": [
+        { "product_hint": "cheeni", "qty": 2, "unit": "bag" },
+        { "product_hint": "tel", "qty": 3, "unit": "packet" }
+      ]
+    }
+  },
+  {
+    "sentence": "5 पैकेट दूध बिका",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "दूध", "qty": 5, "unit": "packet" }]
+    }
+  },
+  {
+    "sentence": "aidu bags rice vachindi",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "rice", "qty": 5, "unit": "bag" }]
+    }
+  },
+  {
+    "sentence": "rendu packetalu paalu ammamu",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "paalu", "qty": 2, "unit": "packet" }]
+    }
+  },
+  {
+    "sentence": "10 kg pappu vachayi",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "pappu", "qty": 10, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "moodu dajanla guddu ammesam",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "guddu", "qty": 3, "unit": "dozen" }]
+    }
+  },
+  {
+    "sentence": "nalugu pettelu biscuits vachindi",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "biscuits", "qty": 4, "unit": "box" }]
+    }
+  },
+  {
+    "sentence": "rendu bori biyyam konnamu",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "biyyam", "qty": 2, "unit": "bag" }]
+    }
+  },
+  {
+    "sentence": "oka leeter noone ammamu",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "noone", "qty": 1, "unit": "l" }]
+    }
+  },
+  {
+    "sentence": "aidu kg chekkera vachindi",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "chekkera", "qty": 5, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "moodu packetlu tea powder ammesam",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "tea powder", "qty": 3, "unit": "packet" }]
+    }
+  },
+  {
+    "sentence": "padi nagulu sabbu ichamu",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "sabbu", "qty": 10, "unit": "pcs" }]
+    }
+  },
+  {
+    "sentence": "500 gramulu ghee konnam",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "ghee", "qty": 500, "unit": "g" }]
+    }
+  },
+  {
+    "sentence": "rendu seesalu honey ammamu",
+    "expected": {
+      "action": "out",
+      "items": [{ "product_hint": "honey", "qty": 2, "unit": "bottle" }]
+    }
+  },
+  {
+    "sentence": "oka quintal godhumalu vachayi",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "godhumalu", "qty": 1, "unit": "quintal" }]
+    }
+  },
+  {
+    "sentence": "Biyyam entha undi?",
+    "expected": {
+      "action": "query_stock",
+      "items": [{ "product_hint": "biyyam", "qty": null, "unit": null }]
+    }
+  },
+  {
+    "sentence": "Chekkera entha migilindi?",
+    "expected": {
+      "action": "query_stock",
+      "items": [{ "product_hint": "chekkera", "qty": null, "unit": null }]
+    }
+  },
+  {
+    "sentence": "Takkuva unna stock chudu",
+    "expected": {
+      "action": "query_low",
+      "items": []
+    }
+  },
+  {
+    "sentence": "Kandi pappu stock 15 kg sari chey",
+    "expected": {
+      "action": "adjust",
+      "items": [{ "product_hint": "kandi pappu", "qty": 15, "unit": "kg" }]
+    }
+  },
+  {
+    "sentence": "rendu bori biyyam mariyu aidu kg kandi pappu vachindi",
+    "expected": {
+      "action": "in",
+      "items": [
+        { "product_hint": "biyyam", "qty": 2, "unit": "bag" },
+        { "product_hint": "kandi pappu", "qty": 5, "unit": "kg" }
+      ]
+    }
+  },
+  {
+    "sentence": "moodu packetlu paalu mariyu oka dajan guddu ammesam",
+    "expected": {
+      "action": "out",
+      "items": [
+        { "product_hint": "paalu", "qty": 3, "unit": "packet" },
+        { "product_hint": "guddu", "qty": 1, "unit": "dozen" }
+      ]
+    }
+  },
+  {
+    "sentence": "5 కిలోల బియ్యం వచ్చింది",
+    "expected": {
+      "action": "in",
+      "items": [{ "product_hint": "బియ్యం", "qty": 5, "unit": "kg" }]
+    }
+  }
+]
