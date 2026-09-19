@@ -129,9 +129,11 @@
     "voiceReadout": "स्टॉकसाथी वॉइस उत्तर:",
     "healthyTag": "पर्याप्त",
     "askStockSathi": "बोलकर पूछें",
-    "askExample": "उदा: \"चावल कितना बचा है?\"",
+    "askExample": "उदा: \"किस सामान की कमी है?\"",
     "activeAlerts": "सक्रिय अलर्ट",
-    "allHealthy": "सब ठीक है"
+    "allHealthy": "सब ठीक है",
+    "emptyHistoryTitle": "अभी कोई बातचीत नहीं है",
+    "emptyHistorySubtitle": "स्टॉकसाथी से सामान के बारे में पूछने के लिए नीचे माइक दबाएं।"
   },
   "settings": {
     "title": "सेटिंग्स",

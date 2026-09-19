@@ -129,9 +129,11 @@
     "voiceReadout": "StockSathi Voice Readout:",
     "healthyTag": "Healthy",
     "askStockSathi": "Ask StockSathi",
-    "askExample": "e.g. \"how much rice is left?\"",
+    "askExample": "e.g. \"Which items are low?\"",
     "activeAlerts": "Active Alerts",
-    "allHealthy": "All Healthy"
+    "allHealthy": "All Healthy",
+    "emptyHistoryTitle": "No questions yet",
+    "emptyHistorySubtitle": "Tap the mic below to ask StockSathi about your inventory."
   },
   "settings": {
     "title": "Settings",

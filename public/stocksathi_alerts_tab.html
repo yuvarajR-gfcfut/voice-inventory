@@ -12,6 +12,8 @@
   <script src="/vendor/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/speech.js"></script>
+  <script src="/js/tts.js"></script>
   <script src="/js/i18n.js"></script>
   <script>
     window.VI.auth.requireSession();
@@ -93,7 +95,7 @@
   <!-- Interactive Controller Header -->
   <div class="w-full max-w-sm mb-3 space-y-2">
     <div class="flex items-center justify-between text-xs font-bold px-1">
-      <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">Alerts & Voice Q&A</span>
+      <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">Alerts &amp; Voice Q&amp;A</span>
       <button onclick="toggleSunlightMode()" id="sunlightBtn" class="px-2.5 py-1 rounded-lg border bg-white shadow-sm flex items-center gap-1 cursor-pointer active:scale-95">
         <span>☀️</span>
         <span id="sunlightLabel">Sunlight Mode</span>
@@ -102,11 +104,11 @@
 
     <!-- State Switcher: Active Alerts vs Healthy Empty State -->
     <div class="grid grid-cols-2 gap-2 p-1 bg-slate-200/80 rounded-xl text-xs font-bold text-center">
-      <button onclick="setAlertState('active')" id="btn-active" class="py-1.5 rounded-lg bg-white shadow text-rose-800">
-        ⚠️ <span data-i18n="alertsPage.activeAlerts">Active Alerts</span> (2)
+      <button onclick="setAlertState('active')" id="btn-active" class="py-1.5 rounded-lg bg-white shadow text-rose-800 cursor-pointer">
+        ⚠️ <span data-i18n="alertsPage.activeAlerts">Active Alerts</span> (<span id="activeCountBadge">0</span>)
       </button>
-      <button onclick="setAlertState('healthy')" id="btn-healthy" class="py-1.5 rounded-lg text-slate-700">
-        ✓ <span data-i18n="alertsPage.allHealthy">All Healthy</span> (0)
+      <button onclick="setAlertState('healthy')" id="btn-healthy" class="py-1.5 rounded-lg text-slate-700 cursor-pointer">
+        ✓ <span data-i18n="alertsPage.allHealthy">All Healthy</span> (<span id="healthyCountBadge">0</span>)
       </button>
     </div>
   </div>
@@ -118,7 +120,7 @@
     <div class="px-5 pt-4 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
       <div>
         <h1 data-i18n="alertsPage.title" class="font-black text-xl leading-tight text-[var(--color-text-primary)]"></h1>
-        <p data-i18n="alertsPage.subtitle" class="text-xs font-semibold text-[var(--color-text-secondary)]">Proactive Stock Alerts & Voice Assistant</p>
+        <p data-i18n="alertsPage.subtitle" class="text-xs font-semibold text-[var(--color-text-secondary)]">Proactive Stock Alerts &amp; Voice Assistant</p>
       </div>
       <div class="w-8 h-8 rounded-full bg-blue-50 border flex items-center justify-center text-blue-700 font-black text-xs" style="border-color: var(--color-border-subtle);">
         AI
@@ -135,39 +137,14 @@
         <div id="activeAlertsGroup" class="space-y-2.5">
           <div class="flex items-center justify-between text-xs font-extrabold text-[var(--color-text-primary)]">
             <span data-i18n="alertsPage.needsAttention"></span>
-            <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-black uppercase">2 <span data-i18n="alertsPage.critical">Critical</span></span>
-          </div>
-
-          <!-- Alert Card 1: Out of Stock (Red) -->
-          <div class="p-3.5 rounded-2xl border bg-white flex items-center justify-between gap-3 shadow-sm border-l-4 border-l-red-600" style="border-width: var(--border-width); border-left-width: 5px; border-color: var(--color-border-subtle); border-left-color: var(--color-stock-red);">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-red-50 border border-red-200 flex-shrink-0 flex items-center justify-center text-red-700 font-bold text-xs">
-                80g
-              </div>
-              <div>
-                <h3 class="font-extrabold text-sm leading-snug text-[var(--color-text-primary)]">पारले-जी बिस्किट (Parle-G)</h3>
-                <div class="font-black text-sm text-red-700 mt-0.5">0 पैकेट (Out of Stock)</div>
-              </div>
-            </div>
-            <span data-i18n="alertsPage.critical" class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-red-bg); color: var(--color-stock-red);">
-              खत्म माल (Empty)
+            <span id="criticalBadge" class="hidden px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-black uppercase">
+              <span id="criticalCount">0</span> <span data-i18n="alertsPage.critical">Critical</span>
             </span>
           </div>
 
-          <!-- Alert Card 2: Low Stock (Amber) -->
-          <div class="p-3.5 rounded-2xl border bg-white flex items-center justify-between gap-3 shadow-sm border-l-4 border-l-amber-500" style="border-width: var(--border-width); border-left-width: 5px; border-color: var(--color-border-subtle); border-left-color: var(--color-stock-amber);">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-yellow-50 border border-amber-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=120&auto=format&fit=crop&q=80" alt="Oil" class="w-full h-full object-cover">
-              </div>
-              <div>
-                <h3 class="font-extrabold text-sm leading-snug text-[var(--color-text-primary)]">फॉर्च्यून तेल 1L (Fortune Oil)</h3>
-                <div class="font-black text-sm text-amber-900 mt-0.5">4 Litres (कम है)</div>
-              </div>
-            </div>
-            <span data-i18n="alertsPage.orderSoon" class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-amber-bg); color: var(--color-stock-amber);">
-              मंगाएं (Order soon)
-            </span>
+          <!-- Dynamic Alert Cards Container -->
+          <div id="alertsListContainer" class="space-y-2.5">
+            <!-- Populated live from GET /api/stock/low -->
           </div>
         </div>
 
@@ -192,77 +169,13 @@
       <section class="space-y-3 pt-2 border-t" style="border-color: var(--color-border-subtle);">
         
         <div class="flex items-center justify-between text-xs font-extrabold text-[var(--color-text-secondary)]">
-          <span data-i18n="alertsPage.inquiriesTitle">बातचीत इतिहास (Stock Inquiries)</span>
+          <span data-i18n="alertsPage.inquiriesTitle"></span>
           <span data-i18n="alertsPage.today" class="text-[10px] text-slate-400 font-semibold">Today</span>
         </div>
 
-        <!-- Exchange 1: With Embedded Stock-Summary Card -->
-        <div class="space-y-2">
-          <!-- Owner Question (Right-Aligned) -->
-          <div class="flex justify-end">
-            <div class="bubble-user max-w-[80%] p-3 text-xs font-extrabold border" style="background-color: var(--chat-user-bg); color: var(--chat-user-text); border-color: var(--color-border-subtle);">
-              how much rice is left? (चावल कितना बचा है?)
-            </div>
-          </div>
-
-          <!-- System Response (Left-Aligned with Spoken + Text + Embedded Card) -->
-          <div class="flex justify-start">
-            <div class="bubble-system max-w-[90%] p-3.5 text-xs bg-white border shadow-sm space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-              <div class="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
-                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                <span data-i18n="alertsPage.voiceReadout">StockSathi Voice Readout:</span>
-              </div>
-              <p class="font-semibold text-slate-800 text-xs leading-relaxed">
-                You have <strong>6 bags of India Gate Basmati Rice</strong> left. That is sufficient for about 3 days.
-              </p>
-
-              <!-- Embedded Compact Stock-Summary Card -->
-              <div class="p-2.5 rounded-xl bg-slate-50 border flex items-center justify-between gap-3 shadow-inner" style="border-color: var(--color-border-subtle);">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-900 border border-amber-200 flex-shrink-0">
-                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M16 6V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H2v13c0 1.89 1.41 3 3 3h14c1.59 0 3-1.11 3-3V6h-6zm-6-2h4v2h-4V4z"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="font-extrabold text-xs text-slate-900">India Gate Rice (चावल)</div>
-                    <div class="text-[10px] font-semibold text-slate-500">Reorder limit: 5 Bags</div>
-                  </div>
-                </div>
-                <div class="text-right flex-shrink-0">
-                  <div class="font-black text-sm text-slate-900">6 Bags</div>
-                  <span data-i18n="alertsPage.healthyTag" class="inline-block px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
-                    ✓ पर्याप्त (Healthy)
-                  </span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Exchange 2: Without Embedded Card (Timestamp / Delivery query) -->
-        <div class="space-y-2 pt-1">
-          <!-- Owner Question (Right-Aligned) -->
-          <div class="flex justify-end">
-            <div class="bubble-user max-w-[80%] p-3 text-xs font-extrabold border" style="background-color: var(--chat-user-bg); color: var(--chat-user-text); border-color: var(--color-border-subtle);">
-              kab aaya tha chini? (When did sugar arrive?)
-            </div>
-          </div>
-
-          <!-- System Response (Left-Aligned Spoken Text Answer) -->
-          <div class="flex justify-start">
-            <div class="bubble-system max-w-[85%] p-3.5 text-xs bg-white border shadow-sm space-y-1" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-              <div class="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
-                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                <span data-i18n="alertsPage.voiceReadout">StockSathi Voice Readout:</span>
-              </div>
-              <p class="font-semibold text-slate-800 text-xs leading-relaxed">
-                Yesterday at <strong>11:30 AM</strong>, 20 bags of Madhur Sugar arrived from ITC Mandi Delivery.
-              </p>
-              <div class="text-[10px] text-slate-400 font-medium">Logged via Voice Entry #842</div>
-            </div>
-          </div>
+        <!-- Dynamic Chat Messages / Empty State -->
+        <div id="chatThreadContainer" class="space-y-3">
+          <!-- Populated dynamically or shows kirana shelf empty state -->
         </div>
 
       </section>
@@ -274,16 +187,16 @@
       
       <div class="flex items-center gap-3">
         <!-- Prominent Mic Button (68px) Consistent with Home Screen -->
-        <button onclick="promptVoiceQuestion()" class="mic-shadow w-16 h-16 rounded-full flex items-center justify-center text-white cursor-pointer transition-transform active:scale-92" style="background-color: var(--color-primary-blue); border: var(--border-width) solid #000000;" aria-label="Tap to ask inventory question">
-          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+        <button id="alertsMicBtn" onclick="handleAlertsMicToggle()" class="mic-shadow w-16 h-16 rounded-full flex items-center justify-center text-white cursor-pointer transition-transform active:scale-92" style="background-color: var(--color-primary-blue); border: var(--border-width) solid #000000;" aria-label="Tap to ask inventory question">
+          <svg id="micIcon" class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
           </svg>
         </button>
 
         <div class="text-left">
-          <div data-i18n="alertsPage.askStockSathi" class="font-extrabold text-sm text-[var(--color-text-primary)]">Ask StockSathi (बोलकर पूछें)</div>
-          <div data-i18n="alertsPage.askExample" class="text-[11px] font-semibold text-[var(--color-text-secondary)]">उदा: "चावल कितना बचा है?"</div>
+          <div data-i18n="alertsPage.askStockSathi" class="font-extrabold text-sm text-[var(--color-text-primary)]"></div>
+          <div data-i18n="alertsPage.askExample" class="text-[11px] font-semibold text-[var(--color-text-secondary)]"></div>
         </div>
       </div>
 
@@ -315,7 +228,7 @@
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
           </svg>
-          <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full"></span>
+          <span id="alertsTabDot" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full"></span>
         </div>
         <span data-i18n="nav.alerts" class="text-[11px] font-extrabold mt-0.5">Alerts</span>
       </button>
@@ -334,30 +247,413 @@
 
   <script>
     let isSunlight = false;
+    let currentAlertTab = 'active';
+    let cachedLowProducts = [];
+    let cachedReorderProducts = [];
+    let cachedAllProducts = [];
+
+    const STORAGE_QUERY_KEY = 'stocksathi_query_history';
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getQueryHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_QUERY_KEY)) || [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveQueryHistory(items) {
+      try {
+        localStorage.setItem(STORAGE_QUERY_KEY, JSON.stringify(items.slice(-20)));
+      } catch (_) {}
+    }
 
     function setAlertState(state) {
+      currentAlertTab = state;
       const activeGroup = document.getElementById('activeAlertsGroup');
       const healthyGroup = document.getElementById('healthyStateGroup');
       const btnActive = document.getElementById('btn-active');
       const btnHealthy = document.getElementById('btn-healthy');
 
       if (state === 'active') {
-        activeGroup.classList.remove('hidden');
-        healthyGroup.classList.add('hidden');
-        btnActive.className = 'py-1.5 rounded-lg bg-white shadow text-rose-800 font-bold';
-        btnHealthy.className = 'py-1.5 rounded-lg text-slate-700 font-medium';
+        if (activeGroup) activeGroup.classList.remove('hidden');
+        if (healthyGroup) healthyGroup.classList.add('hidden');
+        if (btnActive) btnActive.className = 'py-1.5 rounded-lg bg-white shadow text-rose-800 font-bold cursor-pointer';
+        if (btnHealthy) btnHealthy.className = 'py-1.5 rounded-lg text-slate-700 font-medium cursor-pointer';
       } else {
-        activeGroup.classList.add('hidden');
-        healthyGroup.classList.remove('hidden');
-        btnHealthy.className = 'py-1.5 rounded-lg bg-white shadow text-emerald-800 font-bold';
-        btnActive.className = 'py-1.5 rounded-lg text-slate-700 font-medium';
+        if (activeGroup) activeGroup.classList.add('hidden');
+        if (healthyGroup) healthyGroup.classList.remove('hidden');
+        if (btnHealthy) btnHealthy.className = 'py-1.5 rounded-lg bg-white shadow text-emerald-800 font-bold cursor-pointer';
+        if (btnActive) btnActive.className = 'py-1.5 rounded-lg text-slate-700 font-medium cursor-pointer';
       }
     }
 
-    function promptVoiceQuestion() {
-      const q = prompt("Speak or type question for StockSathi (सवाल पूछें):", "tel kitna bacha hai?");
-      if (q) {
-        alert(`🎙️ Voice Engine Query: "${q}"\nStockSathi Response: "You have 4 litres of Fortune Oil left."`);
+    async function loadAlertsData() {
+      if (!window.VI || !window.VI.api) return;
+
+      try {
+        const [lowData, reorderData, allProducts] = await Promise.all([
+          window.VI.api('/stock/low').catch(() => []),
+          window.VI.api('/stock/reorder').catch(() => []),
+          window.VI.api('/products').catch(() => [])
+        ]);
+
+        cachedLowProducts = Array.isArray(lowData) ? lowData : [];
+        cachedReorderProducts = Array.isArray(reorderData) ? reorderData : [];
+        cachedAllProducts = Array.isArray(allProducts) ? allProducts : [];
+
+        renderAlerts();
+      } catch (err) {
+        console.error('[alerts] Error loading stock data:', err);
+      }
+    }
+
+    function renderAlerts() {
+      const listContainer = document.getElementById('alertsListContainer');
+      const criticalBadge = document.getElementById('criticalBadge');
+      const criticalCountEl = document.getElementById('criticalCount');
+      const activeCountBadge = document.getElementById('activeCountBadge');
+      const healthyCountBadge = document.getElementById('healthyCountBadge');
+      const tabDot = document.getElementById('alertsTabDot');
+
+      const totalProducts = cachedAllProducts.length;
+      const lowCount = cachedLowProducts.length;
+      const healthyCount = Math.max(0, totalProducts - lowCount);
+
+      if (activeCountBadge) activeCountBadge.textContent = lowCount;
+      if (healthyCountBadge) healthyCountBadge.textContent = healthyCount;
+
+      const criticalItems = cachedLowProducts.filter(p => Number(p.current_qty) <= 0);
+      if (criticalCountEl) criticalCountEl.textContent = criticalItems.length;
+
+      if (tabDot) {
+        if (lowCount > 0) {
+          tabDot.classList.remove('hidden');
+        } else {
+          tabDot.classList.add('hidden');
+        }
+      }
+
+      if (criticalBadge) {
+        if (criticalItems.length > 0) {
+          criticalBadge.classList.remove('hidden');
+        } else {
+          criticalBadge.classList.add('hidden');
+        }
+      }
+
+      if (lowCount === 0) {
+        setAlertState('healthy');
+        if (listContainer) listContainer.innerHTML = '';
+        return;
+      }
+
+      if (currentAlertTab === 'active') {
+        setAlertState('active');
+      }
+
+      const t = window.VI?.i18n?.t || ((k) => k);
+
+      if (listContainer) {
+        listContainer.innerHTML = cachedLowProducts.map(p => {
+          const isOut = Number(p.current_qty) <= 0;
+          const reorderMatch = cachedReorderProducts.find(r => r.id === p.id);
+          const unit = escapeHtml(p.base_unit || '');
+          const name = escapeHtml(p.name || '');
+
+          if (isOut) {
+            const outLabel = t('inventory.statusOutOfStock') || 'Out of Stock';
+            const critLabel = t('alertsPage.critical') || 'Critical';
+            return `
+              <div class="p-3.5 rounded-2xl border bg-white flex items-center justify-between gap-3 shadow-sm border-l-4 border-l-red-600 cursor-pointer transition active:scale-[0.99]"
+                   style="border-width: var(--border-width); border-left-width: 5px; border-color: var(--color-border-subtle); border-left-color: var(--color-stock-red);"
+                   onclick="window.location.href='stocksathi_product_detail.html?id=' + encodeURIComponent('${p.id}')">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-12 h-12 rounded-xl bg-red-50 border border-red-200 flex-shrink-0 flex items-center justify-center text-red-700 font-bold text-xs">
+                    ${unit}
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-extrabold text-sm leading-snug text-[var(--color-text-primary)] truncate">${name}</h3>
+                    <div class="font-black text-sm text-red-700 mt-0.5">0 ${unit} (${escapeHtml(outLabel)})</div>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-red-bg); color: var(--color-stock-red);">
+                  ${escapeHtml(critLabel)}
+                </span>
+              </div>
+            `;
+          } else {
+            const lowLabel = t('inventory.statusLowStock') || 'Low Stock';
+            const orderSoonLabel = t('alertsPage.orderSoon') || 'Order soon';
+            let detailLine = `${p.current_qty} ${unit} (${escapeHtml(lowLabel)})`;
+
+            if (reorderMatch && reorderMatch.days_of_stock_left !== null) {
+              const daysText = t('alerts.daysLeft', { days: reorderMatch.days_of_stock_left }) || `${reorderMatch.days_of_stock_left} days left`;
+              detailLine = `${p.current_qty} ${unit} • ~${escapeHtml(daysText)}`;
+            }
+
+            const suggestedHtml = (reorderMatch && reorderMatch.suggested_reorder_qty)
+              ? `<div class="text-[10px] font-bold text-amber-700 mt-0.5">+${reorderMatch.suggested_reorder_qty} ${unit} suggested</div>`
+              : '';
+
+            return `
+              <div class="p-3.5 rounded-2xl border bg-white flex items-center justify-between gap-3 shadow-sm border-l-4 border-l-amber-500 cursor-pointer transition active:scale-[0.99]"
+                   style="border-width: var(--border-width); border-left-width: 5px; border-color: var(--color-border-subtle); border-left-color: var(--color-stock-amber);"
+                   onclick="window.location.href='stocksathi_product_detail.html?id=' + encodeURIComponent('${p.id}')">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-12 h-12 rounded-xl bg-yellow-50 border border-amber-200 flex-shrink-0 flex items-center justify-center font-bold text-xs text-amber-800">
+                    ${unit}
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-extrabold text-sm leading-snug text-[var(--color-text-primary)] truncate">${name}</h3>
+                    <div class="font-black text-sm text-amber-900 mt-0.5">${detailLine}</div>
+                    ${suggestedHtml}
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-amber-bg); color: var(--color-stock-amber);">
+                  ${escapeHtml(orderSoonLabel)}
+                </span>
+              </div>
+            `;
+          }
+        }).join('');
+      }
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('chatThreadContainer');
+      if (!container) return;
+
+      const history = getQueryHistory();
+      const t = window.VI?.i18n?.t || ((k) => k);
+
+      if (history.length === 0) {
+        // Reuse Inventory screen kirana shelf empty state pattern
+        container.innerHTML = `
+          <div class="p-4 text-center space-y-3">
+            <div class="w-36 h-24 rounded-2xl bg-amber-50/80 border flex flex-col items-center justify-center p-2.5 relative shadow-inner mx-auto" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              <div class="w-28 h-2 bg-amber-200 rounded-full mb-2"></div>
+              <div class="w-28 h-2 bg-amber-200 rounded-full mb-2"></div>
+              <div class="w-28 h-2 bg-amber-300 rounded-full"></div>
+              <div class="absolute -top-3 bg-white px-2.5 py-0.5 rounded-full border shadow-md flex items-center gap-1.5 text-xs font-bold text-orange-600" style="border-color: var(--color-border-subtle);">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/></svg>
+                <span>${escapeHtml(t('inventory.speak') || 'Speak!')}</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-black text-sm text-[var(--color-text-primary)]">
+                ${escapeHtml(t('alertsPage.emptyHistoryTitle') || 'No questions yet')}
+              </h3>
+              <p class="text-xs text-[var(--color-text-secondary)] mt-0.5 max-w-[240px] mx-auto">
+                ${escapeHtml(t('alertsPage.emptyHistorySubtitle') || 'Tap the mic below to ask StockSathi about your inventory.')}
+              </p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = history.map(item => {
+        const q = escapeHtml(item.question);
+        const ans = escapeHtml(item.response);
+        const readoutHeader = escapeHtml(t('alertsPage.voiceReadout') || 'StockSathi Voice Readout:');
+
+        let cardHtml = '';
+        if (item.product) {
+          const p = item.product;
+          const pUnit = escapeHtml(p.base_unit || '');
+          const pName = escapeHtml(p.name || '');
+          const pQty = p.current_qty ?? 0;
+          const pThresh = p.low_stock_threshold ?? 0;
+          const isLow = Number(pQty) <= Number(pThresh);
+          const tagText = isLow
+            ? (t('alertsPage.orderSoon') || 'Order soon')
+            : (t('alertsPage.healthyTag') || 'Healthy');
+          const tagStyle = isLow
+            ? 'bg-amber-100 text-amber-900'
+            : 'bg-emerald-100 text-emerald-800';
+
+          cardHtml = `
+            <div class="p-2.5 rounded-xl bg-slate-50 border flex items-center justify-between gap-3 shadow-inner cursor-pointer mt-2"
+                 style="border-color: var(--color-border-subtle);"
+                 onclick="window.location.href='stocksathi_product_detail.html?id=' + encodeURIComponent('${p.id}')">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-900 border border-amber-200 flex-shrink-0 font-bold text-xs">
+                  ${pUnit}
+                </div>
+                <div class="min-w-0">
+                  <div class="font-extrabold text-xs text-slate-900 truncate">${pName}</div>
+                  <div class="text-[10px] font-semibold text-slate-500">Reorder limit: ${pThresh} ${pUnit}</div>
+                </div>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <div class="font-black text-sm text-slate-900">${pQty} ${pUnit}</div>
+                <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-extrabold ${tagStyle}">
+                  ${escapeHtml(tagText)}
+                </span>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="space-y-2">
+            <div class="flex justify-end">
+              <div class="bubble-user max-w-[80%] p-3 text-xs font-extrabold border" style="background-color: var(--chat-user-bg); color: var(--chat-user-text); border-color: var(--color-border-subtle);">
+                ${q}
+              </div>
+            </div>
+            <div class="flex justify-start">
+              <div class="bubble-system max-w-[90%] p-3.5 text-xs bg-white border shadow-sm space-y-2" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+                <div class="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span>${readoutHeader}</span>
+                </div>
+                <p class="font-semibold text-slate-800 text-xs leading-relaxed">
+                  ${ans}
+                </p>
+                ${cardHtml}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function submitQuestion(questionText) {
+      if (!questionText || !questionText.trim()) return;
+      const q = questionText.trim();
+
+      const t = window.VI?.i18n?.t || ((k) => k);
+      const langCode = window.VI?.i18n ? window.VI.i18n.getLang() : 'hi';
+
+      try {
+        const parseResult = await window.VI.api('/parse', {
+          method: 'POST',
+          body: { text: q, lang: langCode }
+        });
+
+        let answer = '';
+        let productInfo = null;
+
+        if (parseResult.action === 'query_stock') {
+          const item = parseResult.items?.[0];
+          const prodId = item?.matched?.id;
+
+          if (prodId) {
+            const [prod, reorderList] = await Promise.all([
+              window.VI.api('/stock/' + prodId),
+              window.VI.api('/stock/reorder').catch(() => [])
+            ]);
+
+            const reorderItem = (reorderList || []).find(r => r.id === prod.id);
+
+            if (reorderItem && reorderItem.days_of_stock_left !== null) {
+              answer = t('query.stockWithDays', {
+                name: prod.name,
+                qty: prod.current_qty,
+                unit: prod.base_unit,
+                days: reorderItem.days_of_stock_left
+              });
+            } else {
+              answer = t('query.stockResult', {
+                name: prod.name,
+                qty: prod.current_qty,
+                unit: prod.base_unit
+              });
+            }
+
+            if (reorderItem && reorderItem.suggested_reorder_qty) {
+              const reorderText = t('query.reorderRecommendation', {
+                list: `${prod.name} (${reorderItem.suggested_reorder_qty} ${prod.base_unit})`
+              });
+              answer += ' ' + reorderText;
+            }
+
+            productInfo = {
+              id: prod.id,
+              name: prod.name,
+              current_qty: prod.current_qty,
+              base_unit: prod.base_unit,
+              low_stock_threshold: prod.low_stock_threshold,
+              days_of_stock_left: reorderItem?.days_of_stock_left ?? null,
+              suggested_reorder_qty: reorderItem?.suggested_reorder_qty ?? null
+            };
+          } else {
+            answer = t('toast.selectProductFirst') || 'Could not identify product.';
+          }
+        } else if (parseResult.action === 'query_low') {
+          const reorderList = await window.VI.api('/stock/reorder').catch(() => []);
+          if (!reorderList || reorderList.length === 0) {
+            answer = t('query.noLowStock') || 'All stock levels are healthy!';
+          } else {
+            const listStr = reorderList.map(p => `${p.name} (${p.current_qty} ${p.base_unit})`).join(', ');
+            answer = t('query.lowStockSummary', {
+              count: reorderList.length,
+              items: listStr
+            });
+          }
+        } else {
+          answer = t('query.noLowStock') || 'No matching stock information found.';
+        }
+
+        const history = getQueryHistory();
+        history.push({
+          id: 'q-' + Date.now(),
+          question: q,
+          response: answer,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          product: productInfo
+        });
+        saveQueryHistory(history);
+        renderHistory();
+
+        if (window.VI && window.VI.tts) {
+          window.VI.tts.speak(answer, langCode);
+        }
+
+        const canvas = document.getElementById('scrollCanvas');
+        if (canvas) canvas.scrollTop = canvas.scrollHeight;
+      } catch (err) {
+        console.error('[alerts] submitQuestion error:', err);
+      }
+    }
+
+    function handleAlertsMicToggle() {
+      const speech = window.VI && window.VI.speech;
+      const micBtn = document.getElementById('alertsMicBtn');
+
+      if (!speech || !speech.isSupported()) {
+        const placeholder = window.VI?.i18n ? window.VI.i18n.t('voice.inputPlaceholder') : 'Ask a question...';
+        const q = prompt(placeholder, '');
+        if (q) submitQuestion(q);
+        return;
+      }
+
+      if (speech.isListening()) {
+        speech.stopListening();
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+          micBtn.classList.remove('animate-pulse');
+        }
+      } else {
+        if (micBtn) {
+          micBtn.style.backgroundColor = 'var(--color-warm-accent)';
+          micBtn.classList.add('animate-pulse');
+        }
+
+        const speechLang = window.VI.i18n ? window.VI.i18n.getSpeechLang() : 'hi-IN';
+        speech.startListening(speechLang);
       }
     }
 
@@ -376,6 +672,52 @@
         label.textContent = "Sunlight Mode";
         btn.classList.remove('bg-black', 'text-white');
       }
+    }
+
+    function initAlertsPage() {
+      loadAlertsData();
+      renderHistory();
+
+      if (window.VI && window.VI.i18n) {
+        window.VI.i18n.onLangChange(() => {
+          renderAlerts();
+          renderHistory();
+        });
+      }
+
+      const speech = window.VI && window.VI.speech;
+      if (speech) {
+        speech.onFinal((transcript) => {
+          const micBtn = document.getElementById('alertsMicBtn');
+          if (micBtn) {
+            micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+            micBtn.classList.remove('animate-pulse');
+          }
+          submitQuestion(transcript);
+        });
+
+        speech.onError((code, details) => {
+          const micBtn = document.getElementById('alertsMicBtn');
+          if (micBtn) {
+            micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+            micBtn.classList.remove('animate-pulse');
+          }
+        });
+
+        speech.onEnd(() => {
+          const micBtn = document.getElementById('alertsMicBtn');
+          if (micBtn) {
+            micBtn.style.backgroundColor = 'var(--color-primary-blue)';
+            micBtn.classList.remove('animate-pulse');
+          }
+        });
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAlertsPage);
+    } else {
+      initAlertsPage();
     }
   </script>
 </body>
