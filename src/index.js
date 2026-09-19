@@ -49,4 +49,8 @@ apiRouter.use(errorHandler);
 
 app.use('/api', apiRouter);
 
+app.get('/', (req, res) => {
+  res.redirect('/stocksathi_home_dashboard.html');
+});
+
 export default app;
