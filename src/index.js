@@ -7,6 +7,7 @@ import configRouter from './routes/config.js';
 import meRouter from './routes/me.js';
 import productsRouter from './routes/products.js';
 import parseRouter from './routes/parse.js';
+import queriesRouter from './routes/queries.js';
 import { errorHandler } from './middleware/error.js';
 import { AppError } from './lib/errors.js';
 
@@ -44,6 +45,7 @@ apiRouter.use(configRouter);
 apiRouter.use(meRouter);
 apiRouter.use('/products', productsRouter);
 apiRouter.use('/parse', parseRouter);
+apiRouter.use('/stock', queriesRouter);
 
 apiRouter.use((req, res, next) => {
   next(new AppError(404, 'NOT_FOUND', 'Endpoint not found'));

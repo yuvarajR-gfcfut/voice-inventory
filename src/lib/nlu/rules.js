@@ -142,43 +142,52 @@ const ACTION_RULES = [
     action: 'query_stock',
     patterns: [
       /how\s+much\s+(?:stock\s+)?(?:is\s+)?(?:left|remaining|available)/i,
-      /how\s+(?:much|many)\s+/i,
-      /what\s+is\s+the\s+stock\s+(?:of)?/i,
+      /how\s+(?:much|many)\b/i,
+      /what\s+(?:is|'s)\s+(?:the\s+)?stock\s+(?:of)?/i,
       /check\s+(?:the\s+)?stock\s+(?:of)?/i,
       /stock\s+check\s+(?:karo|chey)?/i,
-      /kitna\s+(?:stock\s+)?(?:bacha|pada|hai)/i,
+      /(?:kitna|kitni)\s+(?:stock\s+)?(?:bacha|bachi|pada|hai)/i,
       /kya\s+stock\s+hai/i,
-      /kitna\s+hai/i,
+      /(?:kitna|kitni)\s+hai/i,
       /stock\s+kitna\s+hai/i,
       /entha\s+(?:stock\s+)?(?:undi|migilindi|unnai|undho)/i,
       /unnada/i,
       /enni\s+unnai/i,
+      /migilindi/i,
       /ఎంత\s+ఉంది/i,
       /ఎంత\s+మిగిలింది/i,
       /ఎన్ని\s+ఉన్నాయి/i,
+      /మిగిలింది/i,
       /कितना\s+बचा/i,
-      /कितना\s+है/i
+      /कितनी\s+बची/i,
+      /कितना\s+है/i,
+      /कितनी\s+है/i
     ]
   },
   // Query low stock
   {
     action: 'query_low',
     patterns: [
+      /what(?:'s|\s+is)\s+low/i,
+      /\breorder(?:\s+list)?\b/i,
       /low\s+stock/i,
       /running\s+low/i,
-      /what\s+is\s+low/i,
       /items?\s+running\s+out/i,
       /out\s+of\s+stock/i,
+      /kya\s+kam\s+hai/i,
       /khatam\s+hone\s+wala/i,
       /kya\s+khatam\s+ho\s+raha\s+hai/i,
       /kam\s+(?:stock|maal)/i,
+      /e(?:m|mi)\s+ta(?:k)?kuva\s+(?:undi|unnai)?/i,
       /takuva\s+(?:unna\s+)?stock/i,
       /takkuva\s+(?:unna\s+)?stock/i,
       /ayipotundi/i,
+      /(?:ఏం|ఏమి)\s+తక్కువ\s+ఉంది/i,
       /తక్కువ\s+స్టాక్/i,
       /ఖతమ్\s+అయ్యే/i,
       /खत्म\s+होने\s+वाला/i,
-      /कम\s+स्टॉक/i
+      /कम\s+स्टॉक/i,
+      /क्या\s+कम\s+है/i
     ]
   },
   // Adjust stock

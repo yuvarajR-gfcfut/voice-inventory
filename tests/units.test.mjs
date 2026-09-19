@@ -225,4 +225,17 @@ describe('Unit Normalization & Conversion (src/lib/units.js)', () => {
     );
   });
 
+  test('Container units (packet, box, bottle) convert with default factor 1 to any baseUnit without override', () => {
+    assert.equal(toBase(2, 'packet', 'l'), 2);
+    assert.equal(toBase(5, 'packet', 'pcs'), 5);
+    assert.equal(toBase(3, 'packet', 'kg'), 3);
+    assert.equal(toBase(2, 'ప్యాకెట్లు', 'l'), 2);
+    assert.equal(fromBase(2, 'packet', 'l'), 2);
+
+    // With per-product override (e.g. 500ml milk packet -> factor 0.5)
+    const milkPacketOverride = [{ unit: 'packet', factor_to_base: 0.5 }];
+    assert.equal(toBase(2, 'packet', 'l', milkPacketOverride), 1);
+    assert.equal(fromBase(1, 'packet', 'l', milkPacketOverride), 2);
+  });
+
 });

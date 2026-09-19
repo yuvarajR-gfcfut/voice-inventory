@@ -1,0 +1,86 @@
+{
+  "app": {
+    "title": "StockSathi",
+    "subtitle": "Voice & Smart Inventory"
+  },
+  "nav": {
+    "home": "Home",
+    "inventory": "Inventory",
+    "alerts": "Alerts",
+    "settings": "Settings"
+  },
+  "lang": {
+    "hi": "हिन्दी",
+    "en": "English",
+    "te": "తెలుగు"
+  },
+  "stats": {
+    "totalProducts": "Total Products",
+    "lowStock": "Low Stock",
+    "stockValue": "Stock Valuation",
+    "itemsCount": "{count} Items",
+    "attentionNeeded": "Needs Attention",
+    "estimatedValue": "Estimated"
+  },
+  "alerts": {
+    "bannerTitle": "Stock Alert",
+    "itemsLow": "{count} items running low or out of stock",
+    "viewAlerts": "View Details",
+    "allHealthy": "All stock levels look healthy. No products need reordering.",
+    "daysLeft": "{days} days left",
+    "noUsage": "No recent usage",
+    "needsReorder": "Reorder Soon",
+    "outOfStock": "Out of Stock"
+  },
+  "voice": {
+    "listening": "Listening...",
+    "processing": "Understanding...",
+    "idle": "Tap mic to speak (e.g. '5 kg sugar in' or 'what is low')",
+    "tapToSpeak": "Tap to speak command",
+    "inputPlaceholder": "Type command or speak...",
+    "examplesTitle": "Try speaking:",
+    "example1": "\"5 kg sugar came\"",
+    "example2": "\"sold 2 packets milk\"",
+    "example3": "\"how much rice is left?\"",
+    "example4": "\"what items are low?\""
+  },
+  "confirm": {
+    "title": "Confirm Stock Movement",
+    "actionIn": "Stock In (Received)",
+    "actionOut": "Stock Out (Sold)",
+    "actionAdjust": "Stock Adjustment",
+    "product": "Product",
+    "qty": "Quantity",
+    "unit": "Unit",
+    "currentStock": "Current Stock: {qty} {unit}",
+    "confirmBtn": "Confirm",
+    "editBtn": "Edit",
+    "cancelBtn": "Cancel",
+    "saveBtn": "Save",
+    "confirmAllBtn": "Confirm All ({count} items)",
+    "whichOne": "Which product did you mean?",
+    "saving": "Saving...",
+    "tryAgain": "Try Again"
+  },
+  "undo": {
+    "lastAction": "Last action:",
+    "undoBtn": "Undo",
+    "undoneSuccess": "Last action undone successfully!"
+  },
+  "toast": {
+    "stockUpdated": "{qty} {unit} of {name} updated successfully",
+    "stockInSuccess": "{qty} {unit} of {name} added to stock",
+    "stockOutSuccess": "{qty} {unit} of {name} deducted from stock",
+    "stockAdjustSuccess": "{name} stock adjusted to {qty} {unit}",
+    "selectProductFirst": "Please select a product first",
+    "networkError": "Network error, please check connection",
+    "voiceNotSupported": "Voice recognition not supported in this browser"
+  },
+  "query": {
+    "stockResult": "You have {qty} {unit} of {name} in stock.",
+    "stockWithDays": "You have {qty} {unit} of {name} in stock (approx {days} days left).",
+    "lowStockSummary": "There are {count} items running low: {items}.",
+    "noLowStock": "No items are currently running low. Stock is healthy!",
+    "reorderRecommendation": "Suggested reorder: {list}."
+  }
+}

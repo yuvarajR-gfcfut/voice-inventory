@@ -1,0 +1,86 @@
+{
+  "app": {
+    "title": "स्टॉकसाथी",
+    "subtitle": "बोलकर स्टॉक प्रबंधित करें"
+  },
+  "nav": {
+    "home": "होम",
+    "inventory": "स्टॉक सूची",
+    "alerts": "अलर्ट",
+    "settings": "सेटिंग्स"
+  },
+  "lang": {
+    "hi": "हिन्दी",
+    "en": "English",
+    "te": "తెలుగు"
+  },
+  "stats": {
+    "totalProducts": "कुल सामान",
+    "lowStock": "कम स्टॉक",
+    "stockValue": "कुल मूल्य",
+    "itemsCount": "{count} सामान",
+    "attentionNeeded": "ध्यान दें",
+    "estimatedValue": "अनुमानित"
+  },
+  "alerts": {
+    "bannerTitle": "स्टॉक अलर्ट",
+    "itemsLow": "{count} सामान कम या खत्म होने वाले हैं",
+    "viewAlerts": "विवरण देखें",
+    "allHealthy": "सभी स्टॉक स्तर पर्याप्त हैं। किसी सामान को तुरंत मंगाने की आवश्यकता नहीं है।",
+    "daysLeft": "{days} दिन का स्टॉक",
+    "noUsage": "हाल ही में कोई खपत नहीं",
+    "needsReorder": "तुरंत मंगाएं",
+    "outOfStock": "खत्म माल"
+  },
+  "voice": {
+    "listening": "सुन रहा हूँ...",
+    "processing": "समझ रहा हूँ...",
+    "idle": "माइक दबाकर बोलें (जैसे '5 किलो चीनी आई' या 'क्या कम है')",
+    "tapToSpeak": "बोलने के लिए माइक दबाएं",
+    "inputPlaceholder": "कमांड लिखें या माइक दबाएं...",
+    "examplesTitle": "ऐसे बोल सकते हैं:",
+    "example1": "\"5 किलो चीनी आई\"",
+    "example2": "\"2 पैकेट दूध बिका\"",
+    "example3": "\"चावल कितना बचा है?\"",
+    "example4": "\"कौन सा सामान कम है?\""
+  },
+  "confirm": {
+    "title": "स्टॉक बदलाव की पुष्टि करें",
+    "actionIn": "आवक (माल आया)",
+    "actionOut": "जावक (माल बिका)",
+    "actionAdjust": "स्टॉक सेट करें",
+    "product": "सामान",
+    "qty": "मात्रा",
+    "unit": "इकाई",
+    "currentStock": "मौजूदा स्टॉक: {qty} {unit}",
+    "confirmBtn": "पुष्टि करें",
+    "editBtn": "बदलें",
+    "cancelBtn": "रद्द करें",
+    "saveBtn": "सहेजें",
+    "confirmAllBtn": "सभी {count} सामान जोड़ें",
+    "whichOne": "कौन सा सामान है?",
+    "saving": "सहेज रहे हैं...",
+    "tryAgain": "दोबारा कोशिश करें"
+  },
+  "undo": {
+    "lastAction": "पिछला बदलाव:",
+    "undoBtn": "वापस लें",
+    "undoneSuccess": "पिछला बदलाव वापस ले लिया गया!"
+  },
+  "toast": {
+    "stockUpdated": "{name} का स्टॉक सफलतापूर्वक अपडेट हुआ",
+    "stockInSuccess": "{qty} {unit} {name} स्टॉक में जुड़ गया",
+    "stockOutSuccess": "{qty} {unit} {name} स्टॉक से घट गया",
+    "stockAdjustSuccess": "{name} का स्टॉक {qty} {unit} सेट हो गया",
+    "selectProductFirst": "कृपया पहले सामान चुनें",
+    "networkError": "नेटवर्क समस्या, कृपया इंटरनेट जांचें",
+    "voiceNotSupported": "इस ब्राउज़र में आवाज़ पहचान उपलब्ध नहीं है"
+  },
+  "query": {
+    "stockResult": "{name} का स्टॉक {qty} {unit} है।",
+    "stockWithDays": "{name} का स्टॉक {qty} {unit} है (लगभग {days} दिन चलेगा)।",
+    "lowStockSummary": "{count} सामान कम हैं: {items}।",
+    "noLowStock": "कोई भी सामान कम नहीं है। स्टॉक पर्याप्त है!",
+    "reorderRecommendation": "मंगाने की सलाह: {list}।"
+  }
+}

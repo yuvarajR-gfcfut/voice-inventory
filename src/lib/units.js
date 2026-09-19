@@ -81,6 +81,44 @@ const UNRESOLVED_UNITS = new Set([
   'पाव'
 ]);
 
+export const CONTAINER_UNITS = new Set([
+  'packet',
+  'packets',
+  'pkt',
+  'pkts',
+  'paiket',
+  'pack',
+  'packs',
+  'packetalu',
+  'packetlu',
+  'ప్యాకెట్',
+  'ప్యాకెట్లు',
+  'पैकेट',
+  'box',
+  'boxes',
+  'peti',
+  'dabba',
+  'carton',
+  'cartons',
+  'crate',
+  'crates',
+  'पेटी',
+  'डिब्बा',
+  'పెట్టె',
+  'bottle',
+  'bottles',
+  'shishi',
+  'బాటిల్',
+  'బోటిల్',
+  'बोतल',
+  'pouch',
+  'pouches',
+  'tin',
+  'tins',
+  'can',
+  'cans'
+]);
+
 /**
  * Converts a quantity from a given unit to its base unit.
  *
@@ -130,13 +168,18 @@ export function toBase(qty, unit, baseUnit, overrides = []) {
     );
   }
 
-  // 3. Look up in default definitions
+  // 3. Check container units (default factor 1 to effective base unit when no override is present)
+  if (CONTAINER_UNITS.has(cleanUnit)) {
+    return qty * 1;
+  }
+
+  // 4. Look up in default definitions
   const def = UNIT_DEFINITIONS[cleanUnit];
   if (!def) {
     throw new UnitError('UNKNOWN_UNIT', `Unknown unit: "${unit}"`);
   }
 
-  // 4. Verify dimension compatibility
+  // 5. Verify dimension compatibility
   if (effectiveBaseUnit) {
     const cleanBaseUnit = effectiveBaseUnit.trim().toLowerCase();
     const baseDim = BASE_UNIT_DIMENSIONS[cleanBaseUnit];
@@ -199,7 +242,12 @@ export function fromBase(qtyBase, unit, baseUnit, overrides = []) {
     );
   }
 
-  // 3. Look up in default definitions
+  // 3. Check container units
+  if (CONTAINER_UNITS.has(cleanUnit)) {
+    return qtyBase / 1;
+  }
+
+  // 4. Look up in default definitions
   const def = UNIT_DEFINITIONS[cleanUnit];
   if (!def) {
     throw new UnitError('UNKNOWN_UNIT', `Unknown unit: "${unit}"`);

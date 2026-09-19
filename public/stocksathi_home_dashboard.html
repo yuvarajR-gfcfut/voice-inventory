@@ -7,12 +7,14 @@
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style id="auth-guard">html { visibility: hidden; }</style>
   <script src="/vendor/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/speech.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/tts.js"></script>
   <script>
     window.VI.auth.requireSession().then(async (session) => {
       if (!session) return;
@@ -80,6 +82,14 @@
       transition: background-color 0.2s ease, color 0.2s ease;
     }
 
+    body.font-devanagari, .font-devanagari {
+      font-family: 'Noto Sans Devanagari', var(--font-family-base) !important;
+    }
+
+    body.font-telugu, .font-telugu {
+      font-family: 'Noto Sans Telugu', var(--font-family-base) !important;
+    }
+
     /* Waveform and sonar pulses */
     @keyframes sonarPulse {
       0% { transform: scale(1); opacity: 0.8; }
@@ -123,43 +133,26 @@
   <!-- Toast Notification -->
   <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xl transition-all duration-300 z-50 max-w-[90vw] text-center opacity-0 pointer-events-none"></div>
 
-  <!-- Interactive State Controller Bar (For Testing & Review) -->
-  <div class="w-full max-w-sm mb-3 space-y-2">
-    <div class="flex items-center justify-between text-xs font-bold px-1">
-      <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">StockSathi Voice Engine</span>
-      <button onclick="toggleOutdoorTheme()" id="outdoorBtn" class="px-2.5 py-1 rounded-lg border bg-white shadow-sm flex items-center gap-1 cursor-pointer active:scale-95">
-        <span>☀️</span>
-        <span id="outdoorText">Sunlight Mode</span>
-      </button>
-    </div>
-
-    <!-- Language Selector Chips -->
-    <div class="grid grid-cols-3 gap-1 p-1 bg-slate-200/80 rounded-xl text-[11px] font-bold text-center">
-      <button type="button" onclick="setSpeechLang('hi-IN')" id="lang-hi" class="py-1 rounded-lg bg-white shadow text-blue-800 font-bold">🇮🇳 हिन्दी (hi-IN)</button>
-      <button type="button" onclick="setSpeechLang('en-IN')" id="lang-en" class="py-1 rounded-lg text-slate-700 font-medium">English (en-IN)</button>
-      <button type="button" onclick="setSpeechLang('te-IN')" id="lang-te" class="py-1 rounded-lg text-slate-700 font-medium">తెలుగు (te-IN)</button>
-    </div>
-
-    <!-- Manual State Jump Buttons -->
-    <div class="grid grid-cols-4 gap-1 p-1 bg-slate-200/80 rounded-xl text-[11px] font-bold text-center">
-      <button onclick="setMicState('idle')" id="btn-idle" class="py-1.5 rounded-lg bg-white shadow text-blue-800">1. Idle</button>
-      <button onclick="setMicState('listening')" id="btn-listening" class="py-1.5 rounded-lg text-slate-700">2. Listen</button>
-      <button onclick="setMicState('processing')" id="btn-processing" class="py-1.5 rounded-lg text-slate-700">3. Process</button>
-      <button onclick="setMicState('error')" id="btn-error" class="py-1.5 rounded-lg text-slate-700">4. Retry</button>
-    </div>
+  <!-- State Controller Bar (Sunlight Mode Toggle) -->
+  <div class="w-full max-w-sm mb-2 flex items-center justify-between px-2 text-xs font-bold">
+    <span class="text-blue-900 bg-blue-100/90 px-2.5 py-1 rounded-full font-black text-[11px]">StockSathi • Voice</span>
+    <button onclick="toggleOutdoorTheme()" id="outdoorBtn" class="px-2.5 py-1 rounded-xl border bg-white shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+      <span>☀️</span>
+      <span id="outdoorText">Sunlight Mode</span>
+    </button>
   </div>
 
   <!-- Mobile Viewport Frame -->
-  <main class="w-full max-w-sm bg-[var(--color-bg-surface)] rounded-3xl border shadow-2xl relative overflow-hidden flex flex-col justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle); height: 720px;">
+  <main class="w-full max-w-sm bg-[var(--color-bg-surface)] rounded-3xl border shadow-2xl relative overflow-hidden flex flex-col justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle); min-height: 720px;">
     
     <!-- Zone 1: Unobtrusive Header -->
-    <header class="pt-5 px-6 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
+    <header class="pt-4 px-5 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
       <div>
         <h1 id="dashboardShopName" class="font-extrabold text-base tracking-tight leading-tight text-[var(--color-text-primary)]">
           माँ लक्ष्मी किराना स्टोर्स
         </h1>
-        <p class="text-xs font-semibold text-[var(--color-text-secondary)] mt-0.5">
-          Maa Lakshmi Stores • Today
+        <p id="dashboardSubtitle" data-i18n="app.subtitle" class="text-xs font-semibold text-[var(--color-text-secondary)] mt-0.5">
+          बोलकर स्टॉक प्रबंधित करें
         </p>
       </div>
       <div id="dashboardAvatar" onclick="window.VI.auth.signOut()" title="Sign Out / Log Out" class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 text-slate-700 text-xs font-bold border cursor-pointer hover:bg-slate-200 active:scale-95 transition-all" style="border-color: var(--color-border-subtle);">
@@ -167,11 +160,49 @@
       </div>
     </header>
 
+    <!-- EXCLUSIVE HOME PAGE ACCESSIBLE LANGUAGE SELECTOR (Requirement: only one language at a time in all sections, only on home page) -->
+    <div class="px-4 pt-2.5 pb-1 w-full flex-shrink-0">
+      <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-2xl text-xs font-black text-center border border-slate-200 shadow-inner">
+        <button type="button" onclick="switchAppLanguage('hi')" id="lang-btn-hi" class="py-2 rounded-xl bg-white shadow-sm text-blue-900 font-black cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1">
+          <span>🇮🇳</span><span>हिन्दी</span>
+        </button>
+        <button type="button" onclick="switchAppLanguage('en')" id="lang-btn-en" class="py-2 rounded-xl text-slate-700 font-semibold cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1">
+          <span>🇬🇧</span><span>English</span>
+        </button>
+        <button type="button" onclick="switchAppLanguage('te')" id="lang-btn-te" class="py-2 rounded-xl text-slate-700 font-semibold cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1">
+          <span>🇮🇳</span><span>తెలుగు</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Low Stock Alert Banner (Phase 3.7) -->
+    <div id="lowStockBanner" class="hidden mx-4 mt-1.5 p-2.5 rounded-2xl border bg-amber-50 border-amber-300 text-amber-950 flex items-center justify-between shadow-xs flex-shrink-0">
+      <div class="flex items-center gap-2 truncate">
+        <span class="text-base">⚠️</span>
+        <span id="lowStockBannerText" class="font-bold text-xs truncate">Low stock items</span>
+      </div>
+      <button onclick="window.location.href='stocksathi_alerts_tab.html'" class="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-xl text-[10px] font-black uppercase flex-shrink-0 cursor-pointer">
+        <span data-i18n="alerts.viewAlerts">View</span> →
+      </button>
+    </div>
+
+    <!-- Query Answer Result Card (Phase 3.7) -->
+    <div id="queryResultCard" class="hidden mx-4 mt-1.5 p-3 rounded-2xl border bg-blue-50 border-blue-300 text-blue-950 flex items-start justify-between shadow-md flex-shrink-0">
+      <div class="flex items-start gap-2.5">
+        <span class="text-lg">📢</span>
+        <div>
+          <div class="text-[10px] font-extrabold uppercase tracking-wide text-blue-700">StockSathi Voice Readout</div>
+          <div id="queryResultText" class="text-xs font-bold text-slate-900 mt-0.5 leading-snug"></div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('queryResultCard').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-sm font-black p-0.5 cursor-pointer">✕</button>
+    </div>
+
     <!-- Center Interactive Hub: Voice Hero Element -->
-    <section class="flex-1 flex flex-col items-center justify-center px-6 py-2 -mt-2">
+    <section class="flex-1 flex flex-col items-center justify-center px-6 py-2 -mt-1">
       
       <!-- Dominant Circular Mic Button (96px) -->
-      <div class="relative flex items-center justify-center mb-4">
+      <div class="relative flex items-center justify-center mb-3">
         
         <!-- Sonar Rings for Listening State -->
         <div id="sonarRing1" class="absolute w-28 h-28 rounded-full opacity-0 pointer-events-none" style="background-color: var(--color-warm-accent);"></div>
@@ -212,69 +243,69 @@
       </div>
 
       <!-- State Feedback Message Banner -->
-      <div class="h-9 flex items-center justify-center text-center px-4">
+      <div class="h-8 flex items-center justify-center text-center px-4">
         
         <!-- Idle Label -->
-        <span id="labelIdle" class="text-xs font-bold px-3 py-1 rounded-full border bg-slate-50 text-slate-700" style="border-color: var(--color-border-subtle);">
-          बोलने के लिए दबाएं (Tap to Speak)
+        <span id="labelIdle" data-i18n="voice.tapToSpeak" class="text-xs font-bold px-3 py-1 rounded-full border bg-slate-50 text-slate-700" style="border-color: var(--color-border-subtle);">
+          बोलने के लिए दबाएं
         </span>
 
         <!-- Listening Label -->
-        <span id="labelListening" class="hidden text-sm font-extrabold px-3 py-1 rounded-full text-white bg-[#EA580C] shadow-sm animate-pulse">
-          सुन रहे हैं... बोलिए (Listening...)
+        <span id="labelListening" data-i18n="voice.listening" class="hidden text-xs font-extrabold px-3 py-1 rounded-full text-white bg-[#EA580C] shadow-sm animate-pulse">
+          सुन रहा हूँ...
         </span>
 
         <!-- Processing Label -->
         <div id="labelProcessing" class="hidden flex items-center gap-1.5 text-xs font-extrabold text-blue-900 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
           <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
-          <span>Samajh raha hoon... (Understanding...)</span>
+          <span data-i18n="voice.processing">समझ रहा हूँ...</span>
         </div>
 
         <!-- Error State Retry Label -->
-        <div id="labelError" class="hidden flex items-center gap-1.5 text-xs font-extrabold text-amber-900 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-300 shadow-sm cursor-pointer" onclick="handleMicToggle()">
+        <div id="labelError" class="hidden flex items-center gap-1.5 text-xs font-extrabold text-amber-900 bg-amber-50 px-3 py-1 rounded-full border border-amber-300 shadow-sm cursor-pointer" onclick="handleMicToggle()">
           <span>⚠️</span>
-          <span>Didn't catch that — try again? (फिर से बोलें)</span>
+          <span data-i18n="confirm.tryAgain">दोबारा कोशिश करें</span>
         </div>
 
       </div>
 
       <!-- Zone 3: Learning-by-Example Line -->
-      <div class="mt-3 w-full flex justify-center">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100/90 border text-xs font-medium text-slate-800 transition-all cursor-pointer" style="border-color: var(--color-border-subtle);" onclick="rotateExamplePhrase()">
-          <span class="text-sm">🗣️</span>
-          <span id="examplePhrase" class="fade-rotate font-semibold">Try saying: 2 bags sugar aa gaya</span>
+      <div class="mt-2 w-full flex justify-center">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 border text-xs font-medium text-slate-800 transition-all cursor-pointer" style="border-color: var(--color-border-subtle);" onclick="rotateExamplePhrase()">
+          <span class="text-xs">🗣️</span>
+          <span id="examplePhrase" class="fade-rotate font-semibold text-[11px]">"5 किलो चीनी आई"</span>
           <span class="text-[10px] text-slate-400">↻</span>
         </div>
       </div>
 
       <!-- Zone 4: Today's Snapshot Stats Row -->
-      <div class="mt-4 w-full grid grid-cols-3 gap-2.5">
+      <div class="mt-3 w-full grid grid-cols-3 gap-2">
         
         <!-- Stat 1: Total Products -->
-        <div class="p-2.5 rounded-2xl border text-center flex flex-col justify-between" style="background-color: var(--color-bg-surface); border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        <div class="p-2 rounded-2xl border text-center flex flex-col justify-between" style="background-color: var(--color-bg-surface); border-width: var(--border-width); border-color: var(--color-border-subtle);">
           <div class="w-4 h-1 bg-slate-300 rounded-full mx-auto mb-1"></div>
-          <div id="statTotalProducts" class="font-extrabold text-2xl text-[var(--color-text-primary)]">0</div>
-          <div class="text-[11px] font-semibold text-[var(--color-text-secondary)] leading-tight">Total Products</div>
+          <div id="statTotalProducts" class="font-extrabold text-xl text-[var(--color-text-primary)]">0</div>
+          <div data-i18n="stats.totalProducts" class="text-[10px] font-bold text-[var(--color-text-secondary)] leading-tight truncate">कुल सामान</div>
         </div>
 
-        <!-- Stat 2: Low Stock (Amber Badge) -->
-        <div class="p-2.5 rounded-2xl border text-center flex flex-col justify-between" style="background-color: var(--color-stock-amber-bg); border-width: var(--border-width); border-color: var(--color-stock-amber);">
+        <!-- Stat 2: Low Stock (Amber Badge) with Days of Stock Left -->
+        <div class="p-2 rounded-2xl border text-center flex flex-col justify-between cursor-pointer" onclick="window.location.href='stocksathi_alerts_tab.html'" style="background-color: var(--color-stock-amber-bg); border-width: var(--border-width); border-color: var(--color-stock-amber);">
           <div class="flex items-center justify-center gap-1 text-[10px] font-bold text-[#78350F]">
             <span>⚠️</span>
-            <span>Low</span>
+            <span data-i18n="stats.lowStock">कम स्टॉक</span>
           </div>
-          <div id="statLowStock" class="font-extrabold text-2xl text-[#78350F]">0</div>
-          <div class="text-[11px] font-bold text-[#78350F] leading-tight">कम स्टॉक</div>
+          <div id="statLowStock" class="font-extrabold text-xl text-[#78350F]">0</div>
+          <div id="statLowStockDays" class="text-[10px] font-black text-[#78350F] leading-tight truncate">—</div>
         </div>
 
         <!-- Stat 3: Out of Stock (Red Badge) -->
-        <div class="p-2.5 rounded-2xl border text-center flex flex-col justify-between" style="background-color: var(--color-stock-red-bg); border-width: var(--border-width); border-color: var(--color-stock-red);">
+        <div class="p-2 rounded-2xl border text-center flex flex-col justify-between cursor-pointer" onclick="window.location.href='stocksathi_alerts_tab.html'" style="background-color: var(--color-stock-red-bg); border-width: var(--border-width); border-color: var(--color-stock-red);">
           <div class="flex items-center justify-center gap-1 text-[10px] font-bold text-[#7F1D1D]">
             <span>✕</span>
-            <span>Empty</span>
+            <span data-i18n="alerts.outOfStock">खत्म माल</span>
           </div>
-          <div id="statOutOfStock" class="font-extrabold text-2xl text-[#7F1D1D]">0</div>
-          <div class="text-[11px] font-bold text-[#7F1D1D] leading-tight">खत्म माल</div>
+          <div id="statOutOfStock" class="font-extrabold text-xl text-[#7F1D1D]">0</div>
+          <div data-i18n="alerts.needsReorder" class="text-[10px] font-bold text-[#7F1D1D] leading-tight truncate">तुरंत मंगाएं</div>
         </div>
 
       </div>
@@ -287,13 +318,13 @@
           <span id="undoSummaryText" class="truncate font-semibold text-[11px]">Stock updated</span>
         </div>
         <button id="undoBtn" onclick="handleUndoLastAction()" class="ml-2 px-2.5 py-1 rounded-lg bg-white border border-blue-300 text-blue-800 font-extrabold shadow-xs hover:bg-blue-100 active:scale-95 cursor-pointer whitespace-nowrap text-[11px]">
-          वापस लें (Undo)
+          <span data-i18n="undo.undoBtn">वापस लें</span>
         </button>
       </div>
 
-      <div class="mt-3 w-full">
+      <div class="mt-2.5 w-full">
         <div class="relative flex items-center">
-          <input id="commandInput" type="text" placeholder="Type stock command... (हाथ से लिखें, e.g. 2 bags sugar)" class="w-full h-11 pl-9 pr-3 rounded-xl border text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <input id="commandInput" type="text" data-i18n-placeholder="voice.inputPlaceholder" placeholder="कमांड लिखें या माइक दबाएं..." class="w-full h-10 pl-9 pr-3 rounded-xl border text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
           <span class="absolute left-3 text-slate-400 pointer-events-none">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
           </span>
@@ -318,7 +349,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
         </svg>
-        <span class="text-[11px] font-extrabold mt-0.5">Home</span>
+        <span data-i18n="nav.home" class="text-[11px] font-extrabold mt-0.5">होम</span>
       </button>
 
       <!-- Tab 2: Inventory -->
@@ -326,7 +357,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
         </svg>
-        <span class="text-[11px] font-medium mt-0.5">Inventory</span>
+        <span data-i18n="nav.inventory" class="text-[11px] font-medium mt-0.5">स्टॉक सूची</span>
       </button>
 
       <!-- Tab 3: Alerts (With Red Notification Dot) -->
@@ -337,7 +368,7 @@
           </svg>
           <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full"></span>
         </div>
-        <span class="text-[11px] font-medium mt-0.5">Alerts</span>
+        <span data-i18n="nav.alerts" class="text-[11px] font-medium mt-0.5">अलर्ट</span>
       </button>
 
       <!-- Tab 4: Settings -->
@@ -345,7 +376,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
         </svg>
-        <span class="text-[11px] font-medium mt-0.5">Settings</span>
+        <span data-i18n="nav.settings" class="text-[11px] font-medium mt-0.5">सेटिंग्स</span>
       </button>
 
     </footer>
@@ -357,16 +388,32 @@
     let isOutdoor = false;
     let currentSpeechLang = 'hi-IN';
 
-    // Rotating example phrases
-    const phrases = [
-      "Try saying: 2 bags sugar aa gaya",
-      "Try saying: 5 packet refined oil bika",
-      "Try saying: Aata kitna bacha hai?",
-      "Try saying: 1 peti biscuit add karo"
-    ];
+    // Localized rotating example phrases
+    const localizedPhrases = {
+      hi: [
+        "\"5 किलो चीनी आई\"",
+        "\"2 पैकेट दूध बिका\"",
+        "\"चावल कितना बचा है?\"",
+        "\"कौन सा सामान कम है?\""
+      ],
+      en: [
+        "\"5 kg sugar came\"",
+        "\"sold 2 packets milk\"",
+        "\"how much rice is left?\"",
+        "\"what items are low?\""
+      ],
+      te: [
+        "\"5 కిలోల చక్కెర వచ్చింది\"",
+        "\"2 ప్యాకెట్ల పాలు అమ్మాము\"",
+        "\"బియ్యం ఎంత మిగిలింది?\"",
+        "\"ఏం సరుకులు తక్కువగా ఉన్నాయి?\""
+      ]
+    };
+    let phrases = localizedPhrases.hi;
     let phraseIndex = 0;
 
     function rotateExamplePhrase() {
+      if (!phrases || phrases.length === 0) return;
       phraseIndex = (phraseIndex + 1) % phrases.length;
       const el = document.getElementById('examplePhrase');
       if (!el) return;
@@ -380,6 +427,13 @@
     }
 
     setInterval(rotateExamplePhrase, 4000);
+
+    function updateExamplePhrasesForLang(lang) {
+      phrases = localizedPhrases[lang] || localizedPhrases.hi;
+      phraseIndex = 0;
+      const el = document.getElementById('examplePhrase');
+      if (el && phrases[0]) el.textContent = phrases[0];
+    }
 
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
@@ -395,18 +449,25 @@
       }, 3500);
     }
 
-    function setSpeechLang(lang) {
-      currentSpeechLang = lang;
-      ['hi', 'en', 'te'].forEach(prefix => {
-        const btn = document.getElementById('lang-' + prefix);
+    // EXCLUSIVE SINGLE LANGUAGE SWITCHER (Requirement: only one language at a time across all sections, only on home page)
+    async function switchAppLanguage(lang) {
+      if (!window.VI || !window.VI.i18n) return;
+      await window.VI.i18n.setLang(lang, true);
+      currentSpeechLang = window.VI.i18n.getSpeechLang();
+
+      ['hi', 'en', 'te'].forEach(l => {
+        const btn = document.getElementById('lang-btn-' + l);
         if (btn) {
-          if (lang.startsWith(prefix)) {
-            btn.className = 'py-1 rounded-lg bg-white shadow text-blue-800 font-bold';
+          if (l === lang) {
+            btn.className = 'py-2 rounded-xl bg-white shadow-sm text-blue-900 font-black cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1';
           } else {
-            btn.className = 'py-1 rounded-lg text-slate-700 font-medium';
+            btn.className = 'py-2 rounded-xl text-slate-700 font-semibold cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1';
           }
         }
       });
+
+      updateExamplePhrasesForLang(lang);
+      await loadDashboardStats();
     }
 
     function setMicState(state) {
@@ -426,17 +487,6 @@
       const lblListen = document.getElementById('labelListening');
       const lblProc = document.getElementById('labelProcessing');
       const lblErr = document.getElementById('labelError');
-
-      // Update state preview buttons
-      ['idle', 'listening', 'processing', 'error'].forEach(s => {
-        const btn = document.getElementById('btn-' + s);
-        if (!btn) return;
-        if (s === state) {
-          btn.className = 'py-1.5 rounded-lg bg-white shadow text-blue-800 font-bold';
-        } else {
-          btn.className = 'py-1.5 rounded-lg text-slate-700 font-medium';
-        }
-      });
 
       // Reset all elements
       sonar1.classList.remove('sonar-wave');
@@ -490,11 +540,10 @@
         setMicState('idle');
       } else {
         if (!speech.isSupported()) {
-          showToast('Voice recognition is not supported on this browser. Please type below.', true);
+          showToast(window.VI.i18n ? window.VI.i18n.t('toast.voiceNotSupported') : 'Voice recognition not supported', true);
           document.getElementById('commandInput')?.focus();
           return;
         }
-        // Immediate visual feedback that tap was received
         setMicState('listening');
         const started = speech.startListening(currentSpeechLang);
         if (!started) {
@@ -530,7 +579,7 @@
     let isInlineEditing = false;
     let lastSuccessfulMovement = null;
 
-    // Load live inventory stats & cache user products
+    // Load live inventory stats & 14-day consumption metrics (Phase 3.7)
     async function loadDashboardStats() {
       try {
         const products = await window.VI.api('/products');
@@ -551,25 +600,114 @@
           const outEl = document.getElementById('statOutOfStock');
           if (outEl) outEl.textContent = out;
         }
+
+        // Fetch reorder data computed from past 14 days net consumption (pure DB rows, zero LLM)
+        const reorders = await window.VI.api('/stock/reorder').catch(() => []);
+        const banner = document.getElementById('lowStockBanner');
+        const bannerText = document.getElementById('lowStockBannerText');
+        if (banner && bannerText) {
+          if (Array.isArray(reorders) && reorders.length > 0) {
+            bannerText.textContent = window.VI.i18n ? window.VI.i18n.t('alerts.itemsLow', { count: reorders.length }) : `${reorders.length} items running low`;
+            banner.classList.remove('hidden');
+          } else {
+            banner.classList.add('hidden');
+          }
+        }
+
+        // Days of stock left: show average or min days, handle 0 usage without division by zero
+        const daysEl = document.getElementById('statLowStockDays');
+        if (daysEl) {
+          if (Array.isArray(reorders) && reorders.length > 0) {
+            const validDays = reorders
+              .map(r => r.days_of_stock_left)
+              .filter(d => d !== null && d > 0);
+            if (validDays.length > 0) {
+              const minD = Math.min(...validDays);
+              const label = window.VI.i18n ? window.VI.i18n.t('alerts.daysLeft', { days: minD }) : `~${minD}d left`;
+              daysEl.textContent = label;
+            } else {
+              daysEl.textContent = '—';
+            }
+          } else {
+            daysEl.textContent = '—';
+          }
+        }
       } catch (_) {}
     }
 
-    // TTS Confirmation Voice feedback (Requirement 6)
-    function speakFeedback(text, lang) {
-      if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    function showQueryResultCard(text) {
+      const card = document.getElementById('queryResultCard');
+      const txt = document.getElementById('queryResultText');
+      if (card && txt) {
+        txt.textContent = text;
+        card.classList.remove('hidden');
+      }
+    }
+
+    // Handle Query Stock: "sugar kitna bacha", "how much rice is left" (Phase 3.7)
+    async function handleStockQuery(data) {
+      const item = data.items?.[0];
+      const prodId = item?.matched?.id;
+      if (!prodId) {
+        const msg = window.VI.i18n ? window.VI.i18n.t('toast.selectProductFirst') : 'Please select a product first';
+        showToast(msg, true);
+        if (window.VI.tts) window.VI.tts.speak(msg);
+        return;
+      }
+
       try {
-        const voices = window.speechSynthesis.getVoices() || [];
-        const prefix = (lang || currentSpeechLang || 'hi').slice(0, 2).toLowerCase();
-        const matchingVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
-        if (matchingVoice) {
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.voice = matchingVoice;
-          utterance.lang = matchingVoice.lang;
-          utterance.rate = 1.0;
-          window.speechSynthesis.speak(utterance);
+        // Pure DB fetch from /api/stock/:productId
+        const prod = await window.VI.api(`/stock/${prodId}`);
+        const reorderList = await window.VI.api('/stock/reorder').catch(() => []);
+        const reorderItem = reorderList.find(r => r.id === prod.id);
+
+        let answer;
+        if (reorderItem && reorderItem.days_of_stock_left !== null) {
+          answer = window.VI.i18n.t('query.stockWithDays', {
+            name: prod.name,
+            qty: prod.current_qty,
+            unit: prod.base_unit,
+            days: reorderItem.days_of_stock_left
+          });
+        } else {
+          answer = window.VI.i18n.t('query.stockResult', {
+            name: prod.name,
+            qty: prod.current_qty,
+            unit: prod.base_unit
+          });
         }
+
+        showToast(answer);
+        showQueryResultCard(answer);
+        if (window.VI.tts) window.VI.tts.speak(answer);
       } catch (err) {
-        console.warn('[TTS] Speech synthesis error:', err);
+        console.error('Stock query failed:', err);
+        showToast(err.message || 'Stock query failed', true);
+      }
+    }
+
+    // Handle Query Low Stock: "what's low", "reorder list", "kya kam hai" (Phase 3.7)
+    async function handleLowStockQuery() {
+      try {
+        // Pure DB fetch from /api/stock/reorder
+        const lowItems = await window.VI.api('/stock/reorder');
+        let answer;
+        if (!lowItems || lowItems.length === 0) {
+          answer = window.VI.i18n.t('query.noLowStock');
+        } else {
+          const listStr = lowItems.map(p => `${p.name} (${p.current_qty} ${p.base_unit})`).join(', ');
+          answer = window.VI.i18n.t('query.lowStockSummary', {
+            count: lowItems.length,
+            items: listStr
+          });
+        }
+
+        showToast(answer);
+        showQueryResultCard(answer);
+        if (window.VI.tts) window.VI.tts.speak(answer);
+      } catch (err) {
+        console.error('Low stock query failed:', err);
+        showToast(err.message || 'Low stock query failed', true);
       }
     }
 
@@ -590,21 +728,21 @@
           }
         });
 
-        if (!data || data.needsManualEntry || !data.items || data.items.length === 0) {
+        if (!data || data.needsManualEntry || !data.items || (data.items.length === 0 && data.action !== 'query_low')) {
           setMicState('error');
-          showToast('समझ नहीं पाए — कृपया सही मात्रा और नाम लिखें (Could not understand, please type)', true);
+          showToast(window.VI.i18n ? window.VI.i18n.t('toast.selectProductFirst') : 'Could not understand command, please type', true);
           document.getElementById('commandInput')?.focus();
           return;
         }
 
-        // Query actions: query_stock or query_low
+        // Query actions: query_stock or query_low (Phase 3.7)
         if (data.action === 'query_stock') {
-          handleStockQuery(data);
+          await handleStockQuery(data);
           setMicState('idle');
           return;
         }
         if (data.action === 'query_low') {
-          handleLowStockQuery(data);
+          await handleLowStockQuery();
           setMicState('idle');
           return;
         }
@@ -619,32 +757,12 @@
       } catch (err) {
         console.error('[submitCommand] Parse error:', err);
         setMicState('error');
-        showToast(err.message || 'कमांड समझने में समस्या हुई', true);
+        showToast(err.message || 'Command parse error', true);
         document.getElementById('commandInput')?.focus();
       }
     }
 
-    function handleStockQuery(data) {
-      const item = data.items[0];
-      if (item && item.matched) {
-        const p = item.matched;
-        const msg = `${p.name}: ${p.current_qty} ${p.base_unit} उपलब्ध है (Available)`;
-        showToast(msg);
-        speakFeedback(`${p.name} का स्टॉक ${p.current_qty} ${p.base_unit} है`, currentSpeechLang);
-      } else {
-        showToast(`सामान नहीं मिला (Product not found for: ${item?.product_hint || 'query'})`, true);
-      }
-    }
-
-    function handleLowStockQuery() {
-      const lowCount = Number(document.getElementById('statLowStock')?.textContent) || 0;
-      const outCount = Number(document.getElementById('statOutOfStock')?.textContent) || 0;
-      const msg = `कम स्टॉक: ${lowCount} आइटम, खत्म माल: ${outCount} आइटम`;
-      showToast(msg);
-      speakFeedback(msg, currentSpeechLang);
-    }
-
-    // Render confirmation card using Milestone-1 component design
+    // Render confirmation card using Milestone-1 component design in ONLY the active language
     function renderConfirmationCard() {
       const modal = document.getElementById('confirmModal');
       const container = document.getElementById('confirmCard');
@@ -658,16 +776,16 @@
       const item = parsedQueue[currentQueueIndex];
       const isMulti = parsedQueue.length > 1;
 
-      // Action Styling
-      let actionTitle = 'STOCK IN (आवक / माल आया)';
+      // Action Styling with localized titles
+      let actionTitle = window.VI.i18n ? window.VI.i18n.t('confirm.actionIn') : 'Stock In';
       let actionBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-400';
       let actionArrow = '↑';
       if (currentParsedAction === 'out') {
-        actionTitle = 'STOCK OUT (जावक / माल बिका)';
+        actionTitle = window.VI.i18n ? window.VI.i18n.t('confirm.actionOut') : 'Stock Out';
         actionBadgeClass = 'bg-red-100 text-red-800 border-red-400';
         actionArrow = '↓';
       } else if (currentParsedAction === 'adjust') {
-        actionTitle = 'ADJUST (स्टॉक बराबर)';
+        actionTitle = window.VI.i18n ? window.VI.i18n.t('confirm.actionAdjust') : 'Stock Adjustment';
         actionBadgeClass = 'bg-blue-100 text-blue-800 border-blue-400';
         actionArrow = '⚙';
       }
@@ -699,7 +817,7 @@
                 ${item.matched.name}
               </h2>
               <p class="text-xs font-semibold text-slate-500 mt-0.5">
-                ${item.matched.category || 'General'} • मौजूदा स्टॉक: ${item.matched.current_qty} ${item.matched.base_unit}
+                ${item.matched.category || 'General'} • ${window.VI.i18n ? window.VI.i18n.t('confirm.currentStock', { qty: item.matched.current_qty, unit: item.matched.base_unit }) : `Stock: ${item.matched.current_qty} ${item.matched.base_unit}`}
               </p>
             </div>
 
@@ -710,7 +828,7 @@
                 <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
                   ${item.unit || item.matched.base_unit}
                 </span>
-                <span class="text-[10px] text-slate-400 mt-0.5">मात्रा (Quantity)</span>
+                <span class="text-[10px] text-slate-400 mt-0.5">${window.VI.i18n ? window.VI.i18n.t('confirm.qty') : 'Quantity'}</span>
               </div>
             </div>
           ` : `
@@ -718,10 +836,10 @@
             <div class="space-y-2 text-left">
               <div class="p-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 flex items-center gap-2">
                 <span>⚠️</span>
-                <span>कौन सा सामान? (Did you mean...?)</span>
+                <span>${window.VI.i18n ? window.VI.i18n.t('confirm.whichOne') : 'Which product?'}</span>
               </div>
               <p class="text-xs text-slate-600 font-medium">
-                बोला गया: <span class="font-bold text-slate-900">"${item.product_hint}"</span>
+                Spoken: <span class="font-bold text-slate-900">"${item.product_hint}"</span>
               </p>
 
               <!-- Candidates List (Milestone-1 list styling) -->
@@ -730,7 +848,7 @@
                   <div onclick="selectCandidate('${c.id}')" class="tappable-chip w-full p-2.5 rounded-xl border flex items-center justify-between cursor-pointer bg-slate-50 hover:bg-orange-50/60 hover:border-orange-400 transition" style="border-width: var(--border-width);">
                     <div>
                       <div class="font-extrabold text-xs text-slate-900">${c.name}</div>
-                      <div class="text-[10px] text-slate-500">${c.category || 'General'} • स्टॉक: ${c.current_qty} ${c.base_unit}</div>
+                      <div class="text-[10px] text-slate-500">${c.category || 'General'} • ${c.current_qty} ${c.base_unit}</div>
                     </div>
                     <div class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center">
                       <div class="w-2.5 h-2.5 rounded-full bg-orange-600 hidden"></div>
@@ -739,9 +857,9 @@
                 `).join('') : `
                   <!-- Fallback dropdown if no direct candidates -->
                   <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-600">सामान चुनें (Select Product):</label>
+                    <label class="text-[11px] font-bold text-slate-600">${window.VI.i18n ? window.VI.i18n.t('confirm.product') : 'Product'}:</label>
                     <select onchange="handleDropdownProductSelect(this.value)" class="w-full h-10 px-2 rounded-xl border text-xs font-bold bg-white focus:ring-2 focus:ring-blue-600">
-                      <option value="">-- सामान चुनें (Select) --</option>
+                      <option value="">-- Select --</option>
                       ${userProductsCache.map(p => `<option value="${p.id}">${p.name} (${p.current_qty} ${p.base_unit})</option>`).join('')}
                     </select>
                   </div>
@@ -750,7 +868,7 @@
 
               <!-- Quantity display for ambiguous item -->
               <div class="flex items-center justify-center gap-2 pt-1 text-sm font-bold text-slate-700">
-                <span>मात्रा (Quantity):</span>
+                <span>${window.VI.i18n ? window.VI.i18n.t('confirm.qty') : 'Quantity'}:</span>
                 <span class="px-2 py-0.5 rounded bg-slate-100 font-black text-slate-900">${item.qty || 1} ${item.unit || ''}</span>
               </div>
             </div>
@@ -767,11 +885,11 @@
         <!-- Inline Edit Mode (Requirement 3: adjust in same card without new screen) -->
         <div id="confirmEditMode" class="${isInlineEditing ? 'block' : 'hidden'} py-2 space-y-2.5 text-left">
           <div class="text-xs font-extrabold text-blue-900 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
-            ✏️ विवरण बदलें (Edit Details Inline)
+            ✏️ ${window.VI.i18n ? window.VI.i18n.t('confirm.editBtn') : 'Edit'}
           </div>
 
           <div>
-            <label class="text-[11px] font-bold text-slate-700">सामान (Product):</label>
+            <label class="text-[11px] font-bold text-slate-700">${window.VI.i18n ? window.VI.i18n.t('confirm.product') : 'Product'}:</label>
             <select id="editProdSelect" class="w-full h-10 px-2 mt-0.5 rounded-xl border text-xs font-bold bg-white focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
               ${userProductsCache.map(p => `
                 <option value="${p.id}" ${item.matched && item.matched.id === p.id ? 'selected' : ''}>
@@ -783,11 +901,11 @@
 
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[11px] font-bold text-slate-700">मात्रा (Qty):</label>
+              <label class="text-[11px] font-bold text-slate-700">${window.VI.i18n ? window.VI.i18n.t('confirm.qty') : 'Qty'}:</label>
               <input id="editQtyVal" type="number" step="any" min="0.001" value="${item.qty || 1}" class="w-full h-10 px-2 mt-0.5 rounded-xl border text-sm font-extrabold bg-white focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
             </div>
             <div>
-              <label class="text-[11px] font-bold text-slate-700">इकाई (Unit):</label>
+              <label class="text-[11px] font-bold text-slate-700">${window.VI.i18n ? window.VI.i18n.t('confirm.unit') : 'Unit'}:</label>
               <select id="editUnitVal" class="w-full h-10 px-2 mt-0.5 rounded-xl border text-xs font-bold bg-white focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
                 ${['bag', 'kg', 'g', 'l', 'ml', 'packet', 'box', 'bottle', 'can', 'tin', 'dozen', 'pcs', 'quintal'].map(u => `
                   <option value="${u}" ${(item.unit && item.unit.toLowerCase() === u) ? 'selected' : ''}>${u}</option>
@@ -797,7 +915,7 @@
           </div>
 
           <button onclick="saveInlineEdit()" class="w-full h-10 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer active:scale-97 shadow-xs">
-            <span>✓ बदलाव सहेजें (Save Changes)</span>
+            <span>✓ ${window.VI.i18n ? window.VI.i18n.t('confirm.saveBtn') : 'Save'}</span>
           </button>
         </div>
 
@@ -807,18 +925,18 @@
           <!-- Confirm Button (Single/Current item) -->
           <button id="confirmItemBtn" ${hasMatched ? '' : 'disabled'} onclick="handleConfirmCurrent()" class="w-full h-12 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 text-white shadow-md transition-all active:scale-97 cursor-pointer ${hasMatched ? 'bg-[var(--color-primary-blue)] hover:bg-blue-700' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}">
             <span>✓</span>
-            <span>हाँ, सही है (Yes, confirm)</span>
+            <span>${window.VI.i18n ? window.VI.i18n.t('confirm.confirmBtn') : 'Confirm'}</span>
           </button>
 
           <div class="flex items-center gap-2">
             <!-- Edit Button -->
             <button onclick="toggleInlineEdit()" class="flex-1 h-10 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border bg-white text-slate-700 hover:bg-slate-50 active:scale-97 cursor-pointer" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-              <span>${isInlineEditing ? 'रद्द करें (Cancel)' : '✏️ बदलें (Edit)'}</span>
+              <span>${isInlineEditing ? (window.VI.i18n ? window.VI.i18n.t('confirm.cancelBtn') : 'Cancel') : ('✏️ ' + (window.VI.i18n ? window.VI.i18n.t('confirm.editBtn') : 'Edit'))}</span>
             </button>
 
             <!-- Cancel Flow Button -->
             <button onclick="closeConfirmModal()" class="flex-1 h-10 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border bg-white text-red-600 hover:bg-red-50 active:scale-97 cursor-pointer" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-              <span>✕ रद्द करें (Cancel)</span>
+              <span>✕ ${window.VI.i18n ? window.VI.i18n.t('confirm.cancelBtn') : 'Cancel'}</span>
             </button>
           </div>
 
@@ -826,7 +944,7 @@
           ${(isMulti && parsedQueue.every(i => i.matched)) ? `
             <button onclick="handleConfirmAll()" class="w-full h-10 rounded-xl font-extrabold text-xs bg-emerald-700 text-white flex items-center justify-center gap-1.5 shadow-sm active:scale-97 cursor-pointer hover:bg-emerald-800">
               <span>✓✓</span>
-              <span>सभी ${parsedQueue.length} जोड़ें (Confirm All)</span>
+              <span>${window.VI.i18n ? window.VI.i18n.t('confirm.confirmAllBtn', { count: parsedQueue.length }) : `Confirm All (${parsedQueue.length})`}</span>
             </button>
           ` : ''}
 
@@ -882,17 +1000,16 @@
     async function handleConfirmCurrent() {
       const item = parsedQueue[currentQueueIndex];
       if (!item || !item.matched) {
-        showToast('कृपया पहले सामान चुनें (Please select a product first)', true);
+        showToast(window.VI.i18n ? window.VI.i18n.t('toast.selectProductFirst') : 'Please select product', true);
         return;
       }
 
       const btn = document.getElementById('confirmItemBtn');
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span>⏳</span><span>सहेज रहे हैं...</span>';
+        btn.innerHTML = `<span>⏳</span><span>${window.VI.i18n ? window.VI.i18n.t('confirm.saving') : 'Saving...'}</span>`;
       }
 
-      // Exact idempotency key generated when card rendered
       const keyToSend = currentCardIdempotencyKey;
       const productId = item.matched.id;
       const qty = Number(item.qty) || 1;
@@ -913,14 +1030,16 @@
         lastSuccessfulMovement = {
           productId,
           movementId: res.id,
-          summary: `${currentParsedAction === 'in' ? 'आवक (IN)' : currentParsedAction === 'out' ? 'जावक (OUT)' : 'बराबर (ADJUST)'}: ${qty} ${unit} ${item.matched.name}`
+          summary: `${qty} ${unit} ${item.matched.name}`
         };
         showUndoAffordance();
 
-        // Spoken confirmation (Requirement 6)
-        const spokenPhrase = `${qty} ${unit} ${item.matched.name} ${currentParsedAction === 'in' ? 'स्टॉक में जुड़ गया' : currentParsedAction === 'out' ? 'स्टॉक से घट गया' : 'स्टॉक सेट हो गया'}`;
-        speakFeedback(spokenPhrase, currentSpeechLang);
-        showToast(`सफल! ${spokenPhrase}`);
+        // Spoken confirmation (Requirement 6) in ONLY active language
+        const spokenPhrase = window.VI.i18n ? window.VI.i18n.t('toast.stockUpdated', { qty, unit, name: item.matched.name }) : `${qty} ${unit} ${item.matched.name} updated`;
+        if (window.VI.tts) {
+          window.VI.tts.speak(spokenPhrase, window.VI.i18n ? window.VI.i18n.getLang() : 'hi');
+        }
+        showToast(spokenPhrase);
 
         // Advance multi-item or finish
         if (currentQueueIndex < parsedQueue.length - 1) {
@@ -934,10 +1053,10 @@
         }
       } catch (err) {
         console.error('Failed to apply stock movement:', err);
-        showToast(err.message || 'स्टॉक अपडेट करने में विफल', true);
+        showToast(err.message || 'Failed to update stock', true);
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = '<span>✓</span><span>पुष्टि करें (Try Again)</span>';
+          btn.innerHTML = `<span>✓</span><span>${window.VI.i18n ? window.VI.i18n.t('confirm.tryAgain') : 'Try Again'}</span>`;
         }
       }
     }
@@ -968,7 +1087,6 @@
       const undoBtn = document.getElementById('undoBtn');
       if (undoBtn) {
         undoBtn.disabled = true;
-        undoBtn.textContent = 'वापस हो रहा है...';
       }
 
       try {
@@ -976,18 +1094,20 @@
           method: 'POST'
         });
 
-        showToast('पिछला बदलाव वापस ले लिया गया! (Movement undone)');
-        speakFeedback('बदलाव वापस ले लिया गया', currentSpeechLang);
+        const undoMsg = window.VI.i18n ? window.VI.i18n.t('undo.undoneSuccess') : 'Action undone';
+        showToast(undoMsg);
+        if (window.VI.tts) {
+          window.VI.tts.speak(undoMsg, window.VI.i18n ? window.VI.i18n.getLang() : 'hi');
+        }
         lastSuccessfulMovement = null;
         document.getElementById('undoBanner')?.classList.add('hidden');
         await loadDashboardStats();
       } catch (err) {
         console.error('Undo failed:', err);
-        showToast(err.message || 'वापस लेने में विफल (Failed to undo)', true);
+        showToast(err.message || 'Undo failed', true);
       } finally {
         if (undoBtn) {
           undoBtn.disabled = false;
-          undoBtn.textContent = 'वापस लें (Undo)';
         }
       }
     }
