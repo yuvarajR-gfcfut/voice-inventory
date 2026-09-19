@@ -280,7 +280,18 @@
       </div>
 
       <!-- Zone 5: Typed Input Fallback (Always visible and usable) -->
-      <div class="mt-4 w-full">
+      <!-- Last Action Undo Affordance (Requirement 7) -->
+      <div id="undoBanner" class="hidden mt-2.5 w-full p-2.5 rounded-xl border flex items-center justify-between text-xs font-bold bg-blue-50 text-blue-900 shadow-sm" style="border-width: var(--border-width); border-color: #BFDBFE;">
+        <div class="flex items-center gap-1.5 truncate">
+          <span class="text-sm text-blue-700">↶</span>
+          <span id="undoSummaryText" class="truncate font-semibold text-[11px]">Stock updated</span>
+        </div>
+        <button id="undoBtn" onclick="handleUndoLastAction()" class="ml-2 px-2.5 py-1 rounded-lg bg-white border border-blue-300 text-blue-800 font-extrabold shadow-xs hover:bg-blue-100 active:scale-95 cursor-pointer whitespace-nowrap text-[11px]">
+          वापस लें (Undo)
+        </button>
+      </div>
+
+      <div class="mt-3 w-full">
         <div class="relative flex items-center">
           <input id="commandInput" type="text" placeholder="Type stock command... (हाथ से लिखें, e.g. 2 bags sugar)" class="w-full h-11 pl-9 pr-3 rounded-xl border text-xs font-semibold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
           <span class="absolute left-3 text-slate-400 pointer-events-none">
@@ -290,6 +301,13 @@
       </div>
 
     </section>
+
+    <!-- Confirmation Modal Overlay (Reusing Milestone-1 Design) -->
+    <div id="confirmModal" class="hidden absolute inset-0 bg-slate-900/60 z-40 flex flex-col justify-end p-2.5 backdrop-blur-xs transition-all duration-200">
+      <div id="confirmCard" class="w-full bg-white rounded-3xl border p-4 shadow-2xl flex flex-col justify-between max-h-[94%] overflow-y-auto" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        <!-- Injected dynamically by renderConfirmationCard() -->
+      </div>
+    </div>
 
     <!-- Fixed Bottom Tab Bar -->
     <footer class="h-16 border-t flex items-center justify-around px-2" style="background-color: var(--color-bg-surface); border-color: var(--color-border-subtle); border-width: var(--border-width) 0 0 0;">
@@ -503,11 +521,21 @@
       setMicState(currentState);
     }
 
-    // Load live inventory stats from /api/products
+    let userProductsCache = [];
+    let parsedQueue = [];
+    let currentQueueIndex = 0;
+    let currentParsedAction = 'in';
+    let currentRawTranscript = '';
+    let currentCardIdempotencyKey = null;
+    let isInlineEditing = false;
+    let lastSuccessfulMovement = null;
+
+    // Load live inventory stats & cache user products
     async function loadDashboardStats() {
       try {
         const products = await window.VI.api('/products');
         if (Array.isArray(products)) {
+          userProductsCache = products;
           let low = 0;
           let out = 0;
           products.forEach(p => {
@@ -526,11 +554,463 @@
       } catch (_) {}
     }
 
+    // TTS Confirmation Voice feedback (Requirement 6)
+    function speakFeedback(text, lang) {
+      if (typeof window === 'undefined' || !window.speechSynthesis) return;
+      try {
+        const voices = window.speechSynthesis.getVoices() || [];
+        const prefix = (lang || currentSpeechLang || 'hi').slice(0, 2).toLowerCase();
+        const matchingVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
+        if (matchingVoice) {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.voice = matchingVoice;
+          utterance.lang = matchingVoice.lang;
+          utterance.rate = 1.0;
+          window.speechSynthesis.speak(utterance);
+        }
+      } catch (err) {
+        console.warn('[TTS] Speech synthesis error:', err);
+      }
+    }
+
+    // Parse command from voice or typed input
+    async function submitCommand(rawText) {
+      if (!rawText || !rawText.trim()) return;
+      currentRawTranscript = rawText.trim();
+      setMicState('processing');
+
+      const langCode = (currentSpeechLang || 'hi').slice(0, 2);
+
+      try {
+        const data = await window.VI.api('/parse', {
+          method: 'POST',
+          body: {
+            text: currentRawTranscript,
+            lang: langCode
+          }
+        });
+
+        if (!data || data.needsManualEntry || !data.items || data.items.length === 0) {
+          setMicState('error');
+          showToast('समझ नहीं पाए — कृपया सही मात्रा और नाम लिखें (Could not understand, please type)', true);
+          document.getElementById('commandInput')?.focus();
+          return;
+        }
+
+        // Query actions: query_stock or query_low
+        if (data.action === 'query_stock') {
+          handleStockQuery(data);
+          setMicState('idle');
+          return;
+        }
+        if (data.action === 'query_low') {
+          handleLowStockQuery(data);
+          setMicState('idle');
+          return;
+        }
+
+        // Stock movement confirmation flow (in / out / adjust)
+        parsedQueue = data.items;
+        currentQueueIndex = 0;
+        currentParsedAction = data.action;
+        isInlineEditing = false;
+
+        renderConfirmationCard();
+      } catch (err) {
+        console.error('[submitCommand] Parse error:', err);
+        setMicState('error');
+        showToast(err.message || 'कमांड समझने में समस्या हुई', true);
+        document.getElementById('commandInput')?.focus();
+      }
+    }
+
+    function handleStockQuery(data) {
+      const item = data.items[0];
+      if (item && item.matched) {
+        const p = item.matched;
+        const msg = `${p.name}: ${p.current_qty} ${p.base_unit} उपलब्ध है (Available)`;
+        showToast(msg);
+        speakFeedback(`${p.name} का स्टॉक ${p.current_qty} ${p.base_unit} है`, currentSpeechLang);
+      } else {
+        showToast(`सामान नहीं मिला (Product not found for: ${item?.product_hint || 'query'})`, true);
+      }
+    }
+
+    function handleLowStockQuery() {
+      const lowCount = Number(document.getElementById('statLowStock')?.textContent) || 0;
+      const outCount = Number(document.getElementById('statOutOfStock')?.textContent) || 0;
+      const msg = `कम स्टॉक: ${lowCount} आइटम, खत्म माल: ${outCount} आइटम`;
+      showToast(msg);
+      speakFeedback(msg, currentSpeechLang);
+    }
+
+    // Render confirmation card using Milestone-1 component design
+    function renderConfirmationCard() {
+      const modal = document.getElementById('confirmModal');
+      const container = document.getElementById('confirmCard');
+      if (!modal || !container || parsedQueue.length === 0) return;
+
+      // REQUIREMENT 2: Generate idempotency key ONCE per card presentation
+      currentCardIdempotencyKey = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : 'key-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+
+      const item = parsedQueue[currentQueueIndex];
+      const isMulti = parsedQueue.length > 1;
+
+      // Action Styling
+      let actionTitle = 'STOCK IN (आवक / माल आया)';
+      let actionBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-400';
+      let actionArrow = '↑';
+      if (currentParsedAction === 'out') {
+        actionTitle = 'STOCK OUT (जावक / माल बिका)';
+        actionBadgeClass = 'bg-red-100 text-red-800 border-red-400';
+        actionArrow = '↓';
+      } else if (currentParsedAction === 'adjust') {
+        actionTitle = 'ADJUST (स्टॉक बराबर)';
+        actionBadgeClass = 'bg-blue-100 text-blue-800 border-blue-400';
+        actionArrow = '⚙';
+      }
+
+      const hasMatched = Boolean(item.matched);
+      const isAmbiguous = !hasMatched && Array.isArray(item.candidates) && item.candidates.length > 0;
+
+      container.innerHTML = `
+        <!-- Top Bar: Step indicator + Action chip + Dismiss -->
+        <div class="flex items-center justify-between pb-2 border-b" style="border-color: var(--color-border-subtle);">
+          <div class="flex items-center gap-1.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black border ${actionBadgeClass}">
+              <span>${actionArrow}</span>
+              <span>${actionTitle}</span>
+            </span>
+            ${isMulti ? `<span class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">${currentQueueIndex + 1}/${parsedQueue.length}</span>` : ''}
+          </div>
+          <button onclick="closeConfirmModal()" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 bg-slate-100 cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <!-- Normal View Mode -->
+        <div id="confirmViewMode" class="${isInlineEditing ? 'hidden' : 'block'} py-3 space-y-3 text-center">
+          
+          ${hasMatched ? `
+            <div>
+              <h2 class="font-extrabold text-xl leading-snug text-[var(--color-text-primary)]">
+                ${item.matched.name}
+              </h2>
+              <p class="text-xs font-semibold text-slate-500 mt-0.5">
+                ${item.matched.category || 'General'} • मौजूदा स्टॉक: ${item.matched.current_qty} ${item.matched.base_unit}
+              </p>
+            </div>
+
+            <!-- Big Quantity + Unit Display (Milestone-1 typography) -->
+            <div class="flex items-center justify-center gap-3 py-1">
+              <span class="font-black text-5xl tracking-tight text-[var(--color-text-primary)]">${item.qty || 1}</span>
+              <div class="flex flex-col items-start justify-center text-left">
+                <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                  ${item.unit || item.matched.base_unit}
+                </span>
+                <span class="text-[10px] text-slate-400 mt-0.5">मात्रा (Quantity)</span>
+              </div>
+            </div>
+          ` : `
+            <!-- Ambiguous Match Candidate Selection (Requirement 4) -->
+            <div class="space-y-2 text-left">
+              <div class="p-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 flex items-center gap-2">
+                <span>⚠️</span>
+                <span>कौन सा सामान? (Did you mean...?)</span>
+              </div>
+              <p class="text-xs text-slate-600 font-medium">
+                बोला गया: <span class="font-bold text-slate-900">"${item.product_hint}"</span>
+              </p>
+
+              <!-- Candidates List (Milestone-1 list styling) -->
+              <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                ${isAmbiguous ? item.candidates.map(c => `
+                  <div onclick="selectCandidate('${c.id}')" class="tappable-chip w-full p-2.5 rounded-xl border flex items-center justify-between cursor-pointer bg-slate-50 hover:bg-orange-50/60 hover:border-orange-400 transition" style="border-width: var(--border-width);">
+                    <div>
+                      <div class="font-extrabold text-xs text-slate-900">${c.name}</div>
+                      <div class="text-[10px] text-slate-500">${c.category || 'General'} • स्टॉक: ${c.current_qty} ${c.base_unit}</div>
+                    </div>
+                    <div class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center">
+                      <div class="w-2.5 h-2.5 rounded-full bg-orange-600 hidden"></div>
+                    </div>
+                  </div>
+                `).join('') : `
+                  <!-- Fallback dropdown if no direct candidates -->
+                  <div class="space-y-1">
+                    <label class="text-[11px] font-bold text-slate-600">सामान चुनें (Select Product):</label>
+                    <select onchange="handleDropdownProductSelect(this.value)" class="w-full h-10 px-2 rounded-xl border text-xs font-bold bg-white focus:ring-2 focus:ring-blue-600">
+                      <option value="">-- सामान चुनें (Select) --</option>
+                      ${userProductsCache.map(p => `<option value="${p.id}">${p.name} (${p.current_qty} ${p.base_unit})</option>`).join('')}
+                    </select>
+                  </div>
+                `}
+              </div>
+
+              <!-- Quantity display for ambiguous item -->
+              <div class="flex items-center justify-center gap-2 pt-1 text-sm font-bold text-slate-700">
+                <span>मात्रा (Quantity):</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 font-black text-slate-900">${item.qty || 1} ${item.unit || ''}</span>
+              </div>
+            </div>
+          `}
+
+          <!-- Trust Signal: Original transcript -->
+          <div class="w-full bg-slate-50 border rounded-xl py-1.5 px-2.5 flex items-center justify-center gap-1.5 text-xs text-slate-600" style="border-color: var(--color-border-subtle);">
+            <span>🗣️</span>
+            <span class="font-semibold italic text-slate-800 truncate">"${currentRawTranscript}"</span>
+          </div>
+
+        </div>
+
+        <!-- Inline Edit Mode (Requirement 3: adjust in same card without new screen) -->
+        <div id="confirmEditMode" class="${isInlineEditing ? 'block' : 'hidden'} py-2 space-y-2.5 text-left">
+          <div class="text-xs font-extrabold text-blue-900 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+            ✏️ विवरण बदलें (Edit Details Inline)
+          </div>
+
+          <div>
+            <label class="text-[11px] font-bold text-slate-700">सामान (Product):</label>
+            <select id="editProdSelect" class="w-full h-10 px-2 mt-0.5 rounded-xl border text-xs font-bold bg-white focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              ${userProductsCache.map(p => `
+                <option value="${p.id}" ${item.matched && item.matched.id === p.id ? 'selected' : ''}>
+                  ${p.name} (${p.category || 'General'})
+                </option>
+              `).join('')}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-bold text-slate-700">मात्रा (Qty):</label>
+              <input id="editQtyVal" type="number" step="any" min="0.001" value="${item.qty || 1}" class="w-full h-10 px-2 mt-0.5 rounded-xl border text-sm font-extrabold bg-white focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-700">इकाई (Unit):</label>
+              <select id="editUnitVal" class="w-full h-10 px-2 mt-0.5 rounded-xl border text-xs font-bold bg-white focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+                ${['bag', 'kg', 'g', 'l', 'ml', 'packet', 'box', 'bottle', 'can', 'tin', 'dozen', 'pcs', 'quintal'].map(u => `
+                  <option value="${u}" ${(item.unit && item.unit.toLowerCase() === u) ? 'selected' : ''}>${u}</option>
+                `).join('')}
+              </select>
+            </div>
+          </div>
+
+          <button onclick="saveInlineEdit()" class="w-full h-10 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-1 cursor-pointer active:scale-97 shadow-xs">
+            <span>✓ बदलाव सहेजें (Save Changes)</span>
+          </button>
+        </div>
+
+        <!-- Buttons Section (Reusing Milestone-1 button styles) -->
+        <div class="pt-2 border-t space-y-2" style="border-color: var(--color-border-subtle);">
+          
+          <!-- Confirm Button (Single/Current item) -->
+          <button id="confirmItemBtn" ${hasMatched ? '' : 'disabled'} onclick="handleConfirmCurrent()" class="w-full h-12 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 text-white shadow-md transition-all active:scale-97 cursor-pointer ${hasMatched ? 'bg-[var(--color-primary-blue)] hover:bg-blue-700' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}">
+            <span>✓</span>
+            <span>हाँ, सही है (Yes, confirm)</span>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <!-- Edit Button -->
+            <button onclick="toggleInlineEdit()" class="flex-1 h-10 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border bg-white text-slate-700 hover:bg-slate-50 active:scale-97 cursor-pointer" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              <span>${isInlineEditing ? 'रद्द करें (Cancel)' : '✏️ बदलें (Edit)'}</span>
+            </button>
+
+            <!-- Cancel Flow Button -->
+            <button onclick="closeConfirmModal()" class="flex-1 h-10 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 border bg-white text-red-600 hover:bg-red-50 active:scale-97 cursor-pointer" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              <span>✕ रद्द करें (Cancel)</span>
+            </button>
+          </div>
+
+          <!-- Multi-item Batch Button: Confirm All (Requirement 5) -->
+          ${(isMulti && parsedQueue.every(i => i.matched)) ? `
+            <button onclick="handleConfirmAll()" class="w-full h-10 rounded-xl font-extrabold text-xs bg-emerald-700 text-white flex items-center justify-center gap-1.5 shadow-sm active:scale-97 cursor-pointer hover:bg-emerald-800">
+              <span>✓✓</span>
+              <span>सभी ${parsedQueue.length} जोड़ें (Confirm All)</span>
+            </button>
+          ` : ''}
+
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    function selectCandidate(productId) {
+      const prod = userProductsCache.find(p => p.id === productId);
+      if (!prod) return;
+      parsedQueue[currentQueueIndex].matched = prod;
+      renderConfirmationCard();
+    }
+
+    function handleDropdownProductSelect(productId) {
+      selectCandidate(productId);
+    }
+
+    function toggleInlineEdit() {
+      isInlineEditing = !isInlineEditing;
+      renderConfirmationCard();
+    }
+
+    function saveInlineEdit() {
+      const prodId = document.getElementById('editProdSelect')?.value;
+      const qtyVal = Number(document.getElementById('editQtyVal')?.value) || 1;
+      const unitVal = document.getElementById('editUnitVal')?.value || 'pcs';
+
+      const prod = userProductsCache.find(p => p.id === prodId);
+      if (prod) {
+        parsedQueue[currentQueueIndex].matched = prod;
+      }
+      parsedQueue[currentQueueIndex].qty = qtyVal;
+      parsedQueue[currentQueueIndex].unit = unitVal;
+      isInlineEditing = false;
+      renderConfirmationCard();
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('confirmModal');
+      if (modal) modal.classList.add('hidden');
+      parsedQueue = [];
+      currentQueueIndex = 0;
+      currentCardIdempotencyKey = null;
+      isInlineEditing = false;
+      setMicState('idle');
+      document.getElementById('commandInput')?.focus();
+    }
+
+    // Apply stock movement using single generated idempotency key (Requirement 2)
+    async function handleConfirmCurrent() {
+      const item = parsedQueue[currentQueueIndex];
+      if (!item || !item.matched) {
+        showToast('कृपया पहले सामान चुनें (Please select a product first)', true);
+        return;
+      }
+
+      const btn = document.getElementById('confirmItemBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span><span>सहेज रहे हैं...</span>';
+      }
+
+      // Exact idempotency key generated when card rendered
+      const keyToSend = currentCardIdempotencyKey;
+      const productId = item.matched.id;
+      const qty = Number(item.qty) || 1;
+      const unit = item.unit || item.matched.base_unit;
+
+      try {
+        const res = await window.VI.api(`/products/${productId}/stock`, {
+          method: 'POST',
+          body: {
+            type: currentParsedAction,
+            qty,
+            unit,
+            idempotency_key: keyToSend
+          }
+        });
+
+        // Store last successful action for Undo (Requirement 7)
+        lastSuccessfulMovement = {
+          productId,
+          movementId: res.id,
+          summary: `${currentParsedAction === 'in' ? 'आवक (IN)' : currentParsedAction === 'out' ? 'जावक (OUT)' : 'बराबर (ADJUST)'}: ${qty} ${unit} ${item.matched.name}`
+        };
+        showUndoAffordance();
+
+        // Spoken confirmation (Requirement 6)
+        const spokenPhrase = `${qty} ${unit} ${item.matched.name} ${currentParsedAction === 'in' ? 'स्टॉक में जुड़ गया' : currentParsedAction === 'out' ? 'स्टॉक से घट गया' : 'स्टॉक सेट हो गया'}`;
+        speakFeedback(spokenPhrase, currentSpeechLang);
+        showToast(`सफल! ${spokenPhrase}`);
+
+        // Advance multi-item or finish
+        if (currentQueueIndex < parsedQueue.length - 1) {
+          currentQueueIndex++;
+          renderConfirmationCard();
+        } else {
+          closeConfirmModal();
+          await loadDashboardStats();
+          const cmd = document.getElementById('commandInput');
+          if (cmd) cmd.value = '';
+        }
+      } catch (err) {
+        console.error('Failed to apply stock movement:', err);
+        showToast(err.message || 'स्टॉक अपडेट करने में विफल', true);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>✓</span><span>पुष्टि करें (Try Again)</span>';
+        }
+      }
+    }
+
+    async function handleConfirmAll() {
+      for (let i = 0; i < parsedQueue.length; i++) {
+        currentQueueIndex = i;
+        currentCardIdempotencyKey = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : 'all-' + Date.now() + '-' + i;
+        await handleConfirmCurrent();
+      }
+    }
+
+    function showUndoAffordance() {
+      const banner = document.getElementById('undoBanner');
+      const text = document.getElementById('undoSummaryText');
+      if (banner && text && lastSuccessfulMovement) {
+        text.textContent = lastSuccessfulMovement.summary;
+        banner.classList.remove('hidden');
+      }
+    }
+
+    // Undo action (Requirement 7)
+    async function handleUndoLastAction() {
+      if (!lastSuccessfulMovement) return;
+      const { productId, movementId } = lastSuccessfulMovement;
+      const undoBtn = document.getElementById('undoBtn');
+      if (undoBtn) {
+        undoBtn.disabled = true;
+        undoBtn.textContent = 'वापस हो रहा है...';
+      }
+
+      try {
+        await window.VI.api(`/products/${productId}/undo/${movementId}`, {
+          method: 'POST'
+        });
+
+        showToast('पिछला बदलाव वापस ले लिया गया! (Movement undone)');
+        speakFeedback('बदलाव वापस ले लिया गया', currentSpeechLang);
+        lastSuccessfulMovement = null;
+        document.getElementById('undoBanner')?.classList.add('hidden');
+        await loadDashboardStats();
+      } catch (err) {
+        console.error('Undo failed:', err);
+        showToast(err.message || 'वापस लेने में विफल (Failed to undo)', true);
+      } finally {
+        if (undoBtn) {
+          undoBtn.disabled = false;
+          undoBtn.textContent = 'वापस लें (Undo)';
+        }
+      }
+    }
+
     // Connect speech events on DOM ready
     let speechListenersRegistered = false;
     function initDashboardSpeech() {
       if (speechListenersRegistered) return;
       loadDashboardStats();
+
+      // Hook typed input enter key
+      const input = document.getElementById('commandInput');
+      if (input) {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const val = input.value.trim();
+            if (val) {
+              submitCommand(val);
+            }
+          }
+        });
+      }
 
       const speech = window.VI && window.VI.speech;
       if (!speech) return;
@@ -542,19 +1022,16 @@
       });
 
       speech.onPartial((transcript) => {
-        const input = document.getElementById('commandInput');
         if (input) {
           input.value = transcript;
         }
       });
 
       speech.onFinal((transcript) => {
-        const input = document.getElementById('commandInput');
         if (input) {
           input.value = transcript;
-          input.focus();
         }
-        setMicState('idle');
+        submitCommand(transcript);
       });
 
       speech.onError((code, details) => {

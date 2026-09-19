@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { AppError, mapDbError } from '../lib/errors.js';
+import { toBase } from '../lib/units.js';
 
 const router = Router();
 
@@ -130,10 +131,32 @@ router.post('/:id/archive', async (req, res, next) => {
 router.post('/:id/stock', validate(stockMovementSchema, 'body'), async (req, res, next) => {
   try {
     const { type, qty, unit, idempotency_key } = req.body;
+
+    let qtyBase = qty;
+    if (unit) {
+      const { data: prod, error: prodErr } = await req.db
+        .from('products')
+        .select('id, base_unit')
+        .eq('id', req.params.id)
+        .single();
+      if (prodErr || !prod) throw new AppError(404, 'PRODUCT_NOT_FOUND', 'Product not found');
+
+      const { data: conversions } = await req.db
+        .from('unit_conversions')
+        .select('unit, factor_to_base')
+        .eq('product_id', req.params.id);
+
+      try {
+        qtyBase = toBase(qty, unit, prod.base_unit, conversions || []);
+      } catch (uErr) {
+        throw new AppError(400, 'INVALID_UNIT', uErr.message);
+      }
+    }
+
     const { data, error } = await req.db.rpc('apply_stock_movement', {
       p_product_id: req.params.id,
       p_type: type,
-      p_qty_base: qty,
+      p_qty_base: qtyBase,
       p_input_qty: qty,
       p_input_unit: unit || null,
       p_source: 'manual',
