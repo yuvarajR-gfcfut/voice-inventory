@@ -11,9 +11,16 @@
   const DEFAULT_LANG = 'hi';
   const STORAGE_KEY = 'stocksathi_lang';
 
-  let currentLang = localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG;
+  const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+  const urlLang = urlParams ? urlParams.get('lang') : null;
+  let currentLang = (urlLang && SUPPORTED_LANGS.includes(urlLang))
+    ? urlLang
+    : (localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG);
   if (!SUPPORTED_LANGS.includes(currentLang)) {
     currentLang = DEFAULT_LANG;
+  }
+  if (urlLang && SUPPORTED_LANGS.includes(urlLang)) {
+    try { localStorage.setItem(STORAGE_KEY, currentLang); } catch (_) {}
   }
 
   let translations = {};
@@ -113,18 +120,7 @@
     applyTranslations();
 
     // Update active state in UI buttons if present
-    for (const l of SUPPORTED_LANGS) {
-      const btn = document.getElementById(`lang-btn-${l}`) || document.getElementById(`lang-${l}`);
-      if (btn) {
-        if (l === lang) {
-          btn.classList.remove('text-slate-700', 'bg-transparent', 'font-medium');
-          btn.classList.add('bg-white', 'shadow', 'text-blue-800', 'font-black');
-        } else {
-          btn.classList.remove('bg-white', 'shadow', 'text-blue-800', 'font-black');
-          btn.classList.add('text-slate-700', 'font-semibold');
-        }
-      }
-    }
+    updateButtons(lang);
 
     // Sync with backend if user is logged in
     if (syncServer && window.VI && window.VI.api) {
@@ -148,18 +144,37 @@
     }
   }
 
+  function updateButtons(lang) {
+    for (const l of SUPPORTED_LANGS) {
+      const btn = document.getElementById(`lang-btn-${l}`) || document.getElementById(`lang-${l}`);
+      if (btn) {
+        if (l === lang) {
+          btn.className = 'py-2 rounded-xl bg-white shadow-sm text-blue-900 font-black cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1';
+        } else {
+          btn.className = 'py-2 rounded-xl text-slate-700 font-semibold cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1';
+        }
+      }
+    }
+  }
+
   async function init() {
-    // 1. Load cached language immediately
-    await loadTranslations(currentLang);
+    // 1. Immediately apply cached language and update buttons
     applyFontClass(currentLang);
+    updateButtons(currentLang);
+    await loadTranslations(currentLang);
     applyTranslations();
+    updateButtons(currentLang);
 
     // 2. Reconcile with server profile once /api/me is accessible
     if (window.VI && window.VI.api) {
       try {
         const me = await window.VI.api('/me');
-        if (me && me.language && SUPPORTED_LANGS.includes(me.language) && me.language !== currentLang) {
-          await setLang(me.language, false);
+        if (me && me.language && SUPPORTED_LANGS.includes(me.language)) {
+          if (me.language !== currentLang) {
+            await setLang(me.language, false);
+          } else {
+            updateButtons(me.language);
+          }
         }
       } catch (_) {}
     }
@@ -178,6 +193,7 @@
     setLang,
     t,
     applyTranslations,
+    updateButtons,
     onLangChange: (fn) => listeners.push(fn)
   };
 })();

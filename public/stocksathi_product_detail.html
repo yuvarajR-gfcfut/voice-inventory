@@ -7,17 +7,18 @@
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Telugu:wght@500;600;700&display=swap" rel="stylesheet">
   <style id="auth-guard">html { visibility: hidden; }</style>
   <script src="/vendor/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     window.VI.auth.requireSession();
   </script>
   <style>
     :root {
-      --font-family-base: 'Baloo 2', system-ui, -apple-system, sans-serif;
+      --font-family-base: 'Baloo 2', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, -apple-system, sans-serif;
       --color-primary-blue: #1D4ED8;
       --color-primary-blue-hover: #1E40AF;
       --color-warm-accent: #EA580C;
@@ -34,6 +35,14 @@
       --color-border-subtle: #E2E8F0;
       --border-width: 1.5px;
       --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    body.font-devanagari, .font-devanagari {
+      font-family: 'Noto Sans Devanagari', var(--font-family-base) !important;
+    }
+
+    body.font-telugu, .font-telugu {
+      font-family: 'Noto Sans Telugu', var(--font-family-base) !important;
     }
 
     [data-theme="outdoor"] {
@@ -109,8 +118,8 @@
       <button onclick="window.location.href='stocksathi_inventory_tab.html'" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-slate-100 cursor-pointer" style="border-color: var(--color-border-subtle);" title="Back to Inventory">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
       </button>
-      <span class="text-xs font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">माल का विवरण (Details)</span>
-      <button onclick="confirmArchiveProduct()" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-red-50 hover:text-red-600 cursor-pointer" style="border-color: var(--color-border-subtle);" title="Archive Product (हटाएं)">
+      <span data-i18n="productDetail.header" class="text-xs font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">माल का विवरण (Details)</span>
+      <button onclick="confirmArchiveProduct()" data-i18n-title="productDetail.archive" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-red-50 hover:text-red-600 cursor-pointer" style="border-color: var(--color-border-subtle);" title="Archive Product (हटाएं)">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       </button>
     </div>
@@ -124,7 +133,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
         </svg>
-        <span class="text-xs font-bold text-slate-600">लोड हो रहा है... (Loading product)</span>
+        <span data-i18n="productDetail.loading" class="text-xs font-bold text-slate-600">लोड हो रहा है... (Loading product)</span>
       </div>
 
       <!-- Content Container (Hidden during load) -->
@@ -150,7 +159,7 @@
             </div>
             <div id="prodStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold mt-0.5">
               <span id="prodStatusDot" class="w-2 h-2 rounded-full"></span>
-              <span id="prodStatusText">स्टॉक में</span>
+              <span id="prodStatusText"></span>
             </div>
           </div>
         </div>
@@ -158,19 +167,19 @@
         <!-- 2. Manual Stock Update Card (In / Out / Adjust) -->
         <div class="p-3.5 rounded-2xl border bg-white space-y-3" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
           <div class="flex items-center justify-between">
-            <div class="font-extrabold text-xs text-[var(--color-text-primary)]">स्टॉक अपडेट (Quick Stock Entry)</div>
+            <div data-i18n="productDetail.quickEntry" class="font-extrabold text-xs text-[var(--color-text-primary)]">स्टॉक अपडेट (Quick Stock Entry)</div>
             <span id="availStockHint" class="text-[11px] font-bold text-slate-500">उपलब्ध: 0</span>
           </div>
 
           <!-- Mode Selector Tabs -->
           <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-extrabold text-center">
-            <button type="button" onclick="setStockMode('in')" id="tab-in" class="action-tab active py-1.5 rounded-lg border border-transparent transition cursor-pointer">
+            <button type="button" onclick="setStockMode('in')" id="tab-in" data-i18n="productDetail.inTab" class="action-tab active py-1.5 rounded-lg border border-transparent transition cursor-pointer">
               + आवक (In)
             </button>
-            <button type="button" onclick="setStockMode('out')" id="tab-out" class="action-tab py-1.5 rounded-lg border border-transparent transition cursor-pointer text-slate-600">
+            <button type="button" onclick="setStockMode('out')" id="tab-out" data-i18n="productDetail.outTab" class="action-tab py-1.5 rounded-lg border border-transparent transition cursor-pointer text-slate-600">
               − बिक्री (Out)
             </button>
-            <button type="button" onclick="setStockMode('adjust')" id="tab-adjust" class="action-tab py-1.5 rounded-lg border border-transparent transition cursor-pointer text-slate-600">
+            <button type="button" onclick="setStockMode('adjust')" id="tab-adjust" data-i18n="productDetail.adjustTab" class="action-tab py-1.5 rounded-lg border border-transparent transition cursor-pointer text-slate-600">
               ⚙️ सेट (Set)
             </button>
           </div>
@@ -178,13 +187,13 @@
           <!-- Stock Action Form -->
           <form onsubmit="handleStockSubmit(event)" class="space-y-2.5">
             <div class="relative">
-              <input id="stockQtyInput" oninput="validateStockAction()" type="number" step="any" min="0.001" placeholder="मात्रा दर्ज करें (Enter qty)..." class="w-full h-11 px-3 rounded-xl border text-sm font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              <input id="stockQtyInput" oninput="validateStockAction()" type="number" step="any" min="0.001" data-i18n-placeholder="productDetail.qtyPlaceholder" placeholder="मात्रा दर्ज करें (Enter qty)..." class="w-full h-11 px-3 rounded-xl border text-sm font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
               <span id="inputUnitBadge" class="absolute right-3 top-2.5 text-xs font-extrabold text-slate-400">kg</span>
             </div>
 
             <!-- Validation Error Warning (Visible when Out > Available) -->
             <div id="stockValidationWarning" class="hidden text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">
-              ⚠️ उपलब्ध स्टॉक से अधिक नहीं निकाल सकते! (Max available: <span id="warnMaxQty">0</span>)
+              ⚠️ <span data-i18n="productDetail.exceedWarning">उपलब्ध स्टॉक से अधिक नहीं निकाल सकते!</span> (Max available: <span id="warnMaxQty">0</span>)
             </div>
 
             <!-- Quick Qty Increment Chips -->
@@ -202,7 +211,7 @@
         <!-- 3. Horizontal Sparkline Graph (Last Movements) -->
         <div class="p-4 rounded-2xl border bg-white space-y-2" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
           <div class="flex items-center justify-between text-xs font-bold">
-            <span class="text-[var(--color-text-primary)]">स्टॉक गतिविधि (Movement Trend)</span>
+            <span data-i18n="productDetail.movementTrend" class="text-[var(--color-text-primary)]">स्टॉक गतिविधि (Movement Trend)</span>
             <span id="sparkSummary" class="text-emerald-700 font-extrabold text-[11px]"></span>
           </div>
 
@@ -232,8 +241,8 @@
         <div class="p-4 rounded-2xl border bg-white space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
           <div class="flex items-center justify-between">
             <div>
-              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">कम स्टॉक चेतावनी (Alert Limit)</div>
-              <div class="text-xs text-[var(--color-text-secondary)]">इस संख्या से कम होने पर चेतावनी मिलेगी</div>
+              <div data-i18n="productDetail.alertLimit" class="font-extrabold text-sm text-[var(--color-text-primary)]">कम स्टॉक चेतावनी (Alert Limit)</div>
+              <div data-i18n="productDetail.alertLimitDesc" class="text-xs text-[var(--color-text-secondary)]">इस संख्या से कम होने पर चेतावनी मिलेगी</div>
             </div>
             <span id="stepperSavingBadge" class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">Alert</span>
           </div>
@@ -261,7 +270,7 @@
         <!-- 5. Vertically Scrollable Stock History Entries -->
         <div class="space-y-2">
           <div class="flex items-center justify-between text-xs font-bold text-[var(--color-text-primary)] px-1">
-            <span>स्टॉक इतिहास (Stock History)</span>
+            <span data-i18n="productDetail.history">स्टॉक इतिहास (Stock History)</span>
             <span id="historyCount" class="text-[11px] text-slate-400 font-semibold">0 Entries</span>
           </div>
 
@@ -374,13 +383,14 @@
       const thresh = Number(p.low_stock_threshold) || 0;
       const unit = p.base_unit || '';
 
+      const tFn = window.VI?.i18n?.t;
       document.getElementById('headerCategory').textContent = p.category ? `Category • ${p.category}` : `Product View • ${p.name}`;
       document.getElementById('unitBadge').textContent = unit;
       document.getElementById('prodTitle').textContent = p.name;
       document.getElementById('prodSubtitle').textContent = `${p.category || 'General'} • Base Unit: ${unit}`;
       document.getElementById('prodQty').textContent = qty;
       document.getElementById('prodUnitLabel').textContent = unit;
-      document.getElementById('availStockHint').textContent = `उपलब्ध: ${qty} ${unit}`;
+      document.getElementById('availStockHint').textContent = tFn ? tFn('productDetail.available', { qty: `${qty} ${unit}` }) : `उपलब्ध: ${qty} ${unit}`;
       document.getElementById('inputUnitBadge').textContent = unit;
       document.getElementById('warnMaxQty').textContent = `${qty} ${unit}`;
 
@@ -393,17 +403,17 @@
         badge.style.backgroundColor = 'var(--color-stock-red-bg)';
         badge.style.color = 'var(--color-stock-red)';
         dot.className = 'w-2 h-2 rounded-full bg-red-600';
-        text.textContent = 'खत्म माल (Out)';
+        text.textContent = tFn ? tFn('inventory.statusOutOfStock') : 'Out of Stock';
       } else if (qty <= thresh) {
         badge.style.backgroundColor = 'var(--color-stock-amber-bg)';
         badge.style.color = 'var(--color-stock-amber)';
         dot.className = 'w-2 h-2 rounded-full bg-amber-600 animate-pulse';
-        text.textContent = 'कम स्टॉक (Low)';
+        text.textContent = tFn ? tFn('inventory.statusLowStock') : 'Low Stock';
       } else {
         badge.style.backgroundColor = 'var(--color-stock-green-bg)';
         badge.style.color = 'var(--color-stock-green)';
         dot.className = 'w-2 h-2 rounded-full bg-emerald-600';
-        text.textContent = 'पर्याप्त स्टॉक';
+        text.textContent = tFn ? tFn('inventory.statusInStock') : 'In Stock';
       }
 
       // Threshold stepper
@@ -411,7 +421,7 @@
       document.getElementById('thresholdUnit').textContent = unit;
 
       // Voice prompt suggestion
-      document.getElementById('voicePromptHint').textContent = `बोलकर अपडेट करें: "2 ${unit} बिका" या "10 ${unit} आया"`;
+      document.getElementById('voicePromptHint').textContent = `Voice Update: "2 ${unit} sold" or "10 ${unit} added"`;
 
       renderQuickChips();
       validateStockAction();
@@ -430,15 +440,16 @@
 
       const submitText = document.getElementById('stockSubmitText');
       const submitBtn = document.getElementById('stockSubmitBtn');
+      const tFn = window.VI?.i18n?.t;
 
       if (mode === 'in') {
-        submitText.textContent = '+ स्टॉक जोड़ें (Add Stock)';
+        submitText.textContent = tFn ? tFn('productDetail.addStockBtn') : '+ स्टॉक जोड़ें (Add Stock)';
         submitBtn.style.backgroundColor = 'var(--color-primary-blue)';
       } else if (mode === 'out') {
-        submitText.textContent = '− स्टॉक घटाएं (Remove Stock)';
+        submitText.textContent = tFn ? tFn('productDetail.deductStockBtn') : '− स्टॉक घटाएं (Remove Stock)';
         submitBtn.style.backgroundColor = 'var(--color-stock-red)';
       } else {
-        submitText.textContent = '⚙️ नया स्टॉक सेट करें (Set Count)';
+        submitText.textContent = tFn ? tFn('productDetail.setStockBtn') : '⚙️ नया स्टॉक सेट करें (Set Count)';
         submitBtn.style.backgroundColor = '#475569';
       }
 
@@ -826,6 +837,13 @@
         label.textContent = "Sunlight Mode";
         btn.classList.remove('bg-black', 'text-white');
       }
+    }
+
+    if (window.VI && window.VI.i18n) {
+      window.VI.i18n.onLangChange(() => {
+        renderProductDetails();
+        setStockMode(currentMode);
+      });
     }
 
     window.addEventListener('DOMContentLoaded', () => {

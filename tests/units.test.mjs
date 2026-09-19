@@ -148,6 +148,43 @@ describe('Unit Normalization & Conversion (src/lib/units.js)', () => {
     assert.equal(fromBase(1.0, 'pao', 'kg', paoOverride200), 5);
   });
 
+  test('carton with no override throws UNRESOLVED_UNIT', () => {
+    assert.equal(DEFAULT_FACTORS.carton, undefined);
+
+    assert.throws(
+      () => toBase(1, 'carton', 'pcs'),
+      (err) => {
+        assert.equal(err.code, 'UNRESOLVED_UNIT');
+        assert.ok(err instanceof UnitError);
+        assert.match(err.message, /UNRESOLVED_UNIT/);
+        return true;
+      }
+    );
+
+    assert.throws(
+      () => toBase(2, 'cartons', 'pcs'),
+      (err) => {
+        assert.equal(err.code, 'UNRESOLVED_UNIT');
+        assert.ok(err instanceof UnitError);
+        return true;
+      }
+    );
+
+    assert.throws(
+      () => fromBase(24, 'carton', 'pcs'),
+      (err) => {
+        assert.equal(err.code, 'UNRESOLVED_UNIT');
+        assert.ok(err instanceof UnitError);
+        return true;
+      }
+    );
+
+    // With explicit override, carton resolves correctly (e.g. 24 pcs for biscuit)
+    const cartonOverride24 = [{ unit: 'carton', factor_to_base: 24 }];
+    assert.equal(toBase(2, 'carton', 'pcs', cartonOverride24), 48);
+    assert.equal(fromBase(48, 'carton', 'pcs', cartonOverride24), 2);
+  });
+
   test('number words: do, teen, రెండు, "half"', () => {
     // English
     assert.equal(parseNumberWord('zero', 'en'), 0);

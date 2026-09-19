@@ -7,18 +7,19 @@
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Telugu:wght@500;600;700&display=swap" rel="stylesheet">
   <style id="auth-guard">html { visibility: hidden; }</style>
   <script src="/vendor/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script src="/js/speech.js"></script>
   <script>
     window.VI.auth.requireSession();
   </script>
   <style>
     :root {
-      --font-family-base: 'Baloo 2', system-ui, -apple-system, sans-serif;
+      --font-family-base: 'Baloo 2', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, -apple-system, sans-serif;
       --color-primary-blue: #1D4ED8;
       --color-primary-blue-hover: #1E40AF;
       --color-warm-accent: #EA580C;
@@ -35,6 +36,14 @@
       --color-border-subtle: #E2E8F0;
       --border-width: 1.5px;
       --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    body.font-devanagari, .font-devanagari {
+      font-family: 'Noto Sans Devanagari', var(--font-family-base) !important;
+    }
+
+    body.font-telugu, .font-telugu {
+      font-family: 'Noto Sans Telugu', var(--font-family-base) !important;
     }
 
     [data-theme="outdoor"] {
@@ -107,8 +116,8 @@
       </button>
     </div>
 
-    <!-- View Switcher -->
-    <div class="grid grid-cols-2 gap-2 p-1 bg-slate-200/80 rounded-xl text-xs font-bold text-center">
+    <!-- View Switcher (Gated behind debug: ?debug=1 or vi_debug=1) -->
+    <div id="debugViewSwitcher" class="hidden grid grid-cols-2 gap-2 p-1 bg-slate-200/80 rounded-xl text-xs font-bold text-center">
       <button onclick="setView('populated')" id="btn-populated" class="py-1.5 rounded-lg bg-white shadow text-blue-800">
         📦 Populated List (<span id="switcherCountPop">0</span>)
       </button>
@@ -127,8 +136,8 @@
       <!-- Top Title Row -->
       <div class="flex items-center justify-between">
         <div class="min-w-0 pr-2">
-          <h1 class="font-black text-xl leading-tight text-[var(--color-text-primary)] truncate">माल का स्टॉक (Inventory)</h1>
-          <p id="totalCountText" class="text-xs font-semibold text-[var(--color-text-secondary)] truncate">लोड हो रहा है... • Loading...</p>
+          <h1 data-i18n="inventory.title" class="font-black text-xl leading-tight text-[var(--color-text-primary)] truncate"></h1>
+          <p id="totalCountText" class="text-xs font-semibold text-[var(--color-text-secondary)] truncate">Loading...</p>
         </div>
         <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 flex-shrink-0">Live</span>
       </div>
@@ -142,10 +151,10 @@
           </svg>
         </span>
         <!-- Text Input -->
-        <input id="searchInput" oninput="handleSearch()" type="text" placeholder="सामान खोजें... (Search product)" class="w-full h-12 pl-10 pr-12 rounded-xl border font-semibold text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+        <input id="searchInput" oninput="handleSearch()" type="text" data-i18n-placeholder="inventory.searchPlaceholder" placeholder="Search products..." class="w-full h-12 pl-10 pr-12 rounded-xl border font-semibold text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
         
         <!-- Voice Search Mic Button inside Search Bar -->
-        <button onclick="handleVoiceSearchTap()" id="searchMicBtn" class="absolute right-1.5 w-9 h-9 rounded-lg flex items-center justify-center text-white cursor-pointer transition-transform active:scale-90" style="background-color: var(--color-primary-blue);" title="Voice Search (बोलकर खोजें)">
+        <button onclick="handleVoiceSearchTap()" id="searchMicBtn" class="absolute right-1.5 w-9 h-9 rounded-lg flex items-center justify-center text-white cursor-pointer transition-transform active:scale-90" style="background-color: var(--color-primary-blue);" data-i18n-title="inventory.voiceSearchTitle" title="Voice Search">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
@@ -157,19 +166,21 @@
       <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs font-bold">
         <!-- All Chip -->
         <button onclick="setFilter('all')" id="chip-all" class="filter-chip active px-3.5 py-1.5 rounded-full border flex items-center gap-1.5 whitespace-nowrap cursor-pointer" style="border-color: var(--color-border-subtle); background-color: var(--color-bg-surface);">
-          <span>सभी (All)</span>
+          <span data-i18n="inventory.filterAll">सभी</span>
           <span class="text-[11px] opacity-80" id="badge-all">0</span>
         </button>
 
         <!-- Low Stock Chip (Amber) -->
         <button onclick="setFilter('low')" id="chip-low" class="filter-chip px-3 py-1.5 rounded-full border flex items-center gap-1.5 whitespace-nowrap cursor-pointer text-[#78350F] bg-amber-50" style="border-color: var(--color-stock-amber);">
-          <span>⚠️ कम स्टॉक (Low)</span>
+          <span>⚠️</span>
+          <span data-i18n="inventory.filterLow">कम स्टॉक</span>
           <span class="text-[11px] px-1.5 rounded-full bg-amber-200 text-amber-900 font-black" id="badge-low">0</span>
         </button>
 
         <!-- Out of Stock Chip (Red) -->
         <button onclick="setFilter('out')" id="chip-out" class="filter-chip px-3 py-1.5 rounded-full border flex items-center gap-1.5 whitespace-nowrap cursor-pointer text-[#7F1D1D] bg-red-50" style="border-color: var(--color-stock-red);">
-          <span>✕ खत्म माल (Empty)</span>
+          <span>✕</span>
+          <span data-i18n="inventory.filterOut">खत्म माल</span>
           <span class="text-[11px] px-1.5 rounded-full bg-red-200 text-red-900 font-black" id="badge-out">0</span>
         </button>
       </div>
@@ -193,24 +204,23 @@
         <!-- Friendly Floating Speech Bubble with Mic -->
         <div class="absolute -top-3 bg-white px-3 py-1 rounded-full border shadow-md flex items-center gap-1.5 text-xs font-bold text-orange-600 animate-bounce" style="border-color: var(--color-border-subtle);">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/></svg>
-          <span>बोलिए! (Speak)</span>
+          <span data-i18n="inventory.speak">बोलिए!</span>
         </div>
       </div>
 
       <div>
-        <h3 class="font-black text-xl text-[var(--color-text-primary)]">
-          No products here yet <br>
-          <span class="text-slate-600 text-base font-bold">(अभी कोई सामान नहीं है)</span>
+        <h3 data-i18n="inventory.emptyTitle" class="font-black text-xl text-[var(--color-text-primary)]">
+          अभी कोई सामान नहीं है
         </h3>
-        <p class="text-xs text-[var(--color-text-secondary)] mt-1 max-w-[240px]">
-          Start adding your inventory in seconds.
+        <p data-i18n="inventory.emptySubtitle" class="text-xs text-[var(--color-text-secondary)] mt-1 max-w-[240px]">
+          कुछ ही सेकंड में अपना सामान जोड़ें।
         </p>
       </div>
 
       <!-- Quick Action: Add Product Button -->
       <button onclick="openAddModal()" class="px-5 py-3 rounded-xl font-bold text-sm text-white flex items-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer" style="background-color: var(--color-primary-blue);">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        <span>नया सामान जोड़ें (Add Product)</span>
+        <span data-i18n="inventory.addProduct">नया सामान जोड़ें</span>
       </button>
 
     </div>
@@ -232,7 +242,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
         </svg>
-        <span class="text-[11px] font-medium mt-0.5">Home</span>
+        <span data-i18n="nav.home" class="text-[11px] font-medium mt-0.5">Home</span>
       </button>
 
       <!-- Tab 2: Inventory (Active with Top Pill) -->
@@ -241,7 +251,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
         </svg>
-        <span class="text-[11px] font-extrabold mt-0.5">Inventory</span>
+        <span data-i18n="nav.inventory" class="text-[11px] font-extrabold mt-0.5">Inventory</span>
       </button>
 
       <!-- Tab 3: Alerts -->
@@ -252,7 +262,7 @@
           </svg>
           <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full"></span>
         </div>
-        <span class="text-[11px] font-medium mt-0.5">Alerts</span>
+        <span data-i18n="nav.alerts" class="text-[11px] font-medium mt-0.5">Alerts</span>
       </button>
 
       <!-- Tab 4: Settings -->
@@ -260,7 +270,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
         </svg>
-        <span class="text-[11px] font-medium mt-0.5">Settings</span>
+        <span data-i18n="nav.settings" class="text-[11px] font-medium mt-0.5">Settings</span>
       </button>
 
     </footer>
@@ -272,46 +282,45 @@
     <div class="w-full max-w-sm bg-white rounded-3xl p-5 border shadow-2xl space-y-4" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
       <div class="flex items-center justify-between pb-2 border-b" style="border-color: var(--color-border-subtle);">
         <div>
-          <h3 class="font-black text-lg text-[var(--color-text-primary)]">नया सामान जोड़ें</h3>
-          <p class="text-xs text-[var(--color-text-secondary)]">Add New Product</p>
+          <h3 data-i18n="inventory.addModalTitle" class="font-black text-lg text-[var(--color-text-primary)]">नया सामान जोड़ें</h3>
         </div>
         <button onclick="closeAddModal()" class="w-8 h-8 rounded-full border flex items-center justify-center text-slate-500 hover:bg-slate-100 font-bold">✕</button>
       </div>
 
       <form id="addProductForm" onsubmit="handleAddProductSubmit(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">सामान का नाम (Product Name) *</label>
+          <label data-i18n="inventory.productName" class="block text-xs font-bold text-slate-700 mb-1">सामान का नाम *</label>
           <input id="newProdName" type="text" required maxlength="80" placeholder="e.g. Aashirvaad Atta" class="w-full px-3 py-2 text-sm font-semibold rounded-xl border bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">श्रेणी (Category)</label>
+          <label data-i18n="inventory.category" class="block text-xs font-bold text-slate-700 mb-1">श्रेणी</label>
           <input id="newProdCategory" type="text" maxlength="40" placeholder="e.g. Flour, Spices, Oil" class="w-full px-3 py-2 text-sm font-semibold rounded-xl border bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">इकाई (Unit) *</label>
+            <label data-i18n="inventory.unit" class="block text-xs font-bold text-slate-700 mb-1">इकाई *</label>
             <select id="newProdUnit" required class="w-full px-3 py-2 text-sm font-semibold rounded-xl border bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-              <option value="kg">kg (किलो)</option>
-              <option value="l">l (लीटर)</option>
-              <option value="pcs">pcs (पीस / पैकेट)</option>
+              <option value="kg">kg</option>
+              <option value="l">l</option>
+              <option value="pcs">pcs</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">कम स्टॉक सीमा (Alert)</label>
+            <label data-i18n="inventory.lowStockThreshold" class="block text-xs font-bold text-slate-700 mb-1">कम स्टॉक सीमा</label>
             <input id="newProdThreshold" type="number" min="0" step="any" value="5" class="w-full px-3 py-2 text-sm font-semibold rounded-xl border bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">शुरुआती स्टॉक (Initial Stock)</label>
+          <label data-i18n="inventory.initialStock" class="block text-xs font-bold text-slate-700 mb-1">शुरुआती स्टॉक</label>
           <input id="newProdInitialStock" type="number" min="0" step="any" value="0" placeholder="0" class="w-full px-3 py-2 text-sm font-semibold rounded-xl border bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
         </div>
 
         <div class="flex items-center gap-2 pt-2">
-          <button type="button" onclick="closeAddModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-xs text-slate-600 hover:bg-slate-50" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">रद्द करें (Cancel)</button>
-          <button id="submitAddBtn" type="submit" class="flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow-md active:scale-95 transition-all" style="background-color: var(--color-primary-blue);">जोड़ें (Save)</button>
+          <button type="button" onclick="closeAddModal()" class="flex-1 py-2.5 rounded-xl border font-bold text-xs text-slate-600 hover:bg-slate-50" style="border-width: var(--border-width); border-color: var(--color-border-subtle);" data-i18n="inventory.cancel">रद्द करें</button>
+          <button id="submitAddBtn" type="submit" class="flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow-md active:scale-95 transition-all" style="background-color: var(--color-primary-blue);" data-i18n="inventory.save">जोड़ें</button>
         </div>
       </form>
     </div>
@@ -347,13 +356,15 @@
     async function loadProducts() {
       try {
         const list = document.getElementById('listContainer');
+        const tFn = window.VI?.i18n?.t;
+        const loadingText = tFn ? tFn('inventory.loading') : 'लोड हो रहा है...';
         list.innerHTML = `
           <div class="flex flex-col items-center justify-center py-16 text-slate-400 space-y-2">
             <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
-            <span class="text-xs font-bold text-slate-600">लोड हो रहा है... (Loading inventory)</span>
+            <span class="text-xs font-bold text-slate-600">${escapeHtml(loadingText)}</span>
           </div>
         `;
 
@@ -363,11 +374,14 @@
       } catch (err) {
         console.error('Failed to load products:', err);
         showToast(err.message || 'Failed to load products', true);
+        const tFn = window.VI?.i18n?.t;
+        const errText = tFn ? tFn('inventory.loadError') : 'स्टॉक लोड करने में त्रुटि';
+        const retryText = tFn ? tFn('inventory.retry') : 'पुनः प्रयास करें';
         document.getElementById('listContainer').innerHTML = `
           <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-center space-y-2">
-            <p class="text-xs font-bold text-red-700">स्टॉक लोड करने में त्रुटि (Failed to load)</p>
+            <p class="text-xs font-bold text-red-700">${escapeHtml(errText)}</p>
             <p class="text-[11px] text-red-600">${escapeHtml(err.message)}</p>
-            <button onclick="loadProducts()" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold shadow-sm">पुनः प्रयास करें (Retry)</button>
+            <button onclick="loadProducts()" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold shadow-sm">${escapeHtml(retryText)}</button>
           </div>
         `;
       }
@@ -389,7 +403,10 @@
       });
 
       const totalEl = document.getElementById('totalCountText');
-      if (totalEl) totalEl.textContent = `${total} कुल उत्पाद • Total Products`;
+      if (totalEl) {
+        const tFn = window.VI?.i18n?.t;
+        totalEl.textContent = tFn ? tFn('inventory.totalProducts', { count: total }) : `${total} Total Products`;
+      }
 
       const badgeAll = document.getElementById('badge-all');
       if (badgeAll) badgeAll.textContent = total;
@@ -408,6 +425,7 @@
       const list = document.getElementById('listContainer');
       const empty = document.getElementById('emptyContainer');
       const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+      const tFn = window.VI?.i18n?.t;
 
       if (forceView === 'empty' || (allProducts.length === 0 && forceView !== 'populated')) {
         list.classList.add('hidden');
@@ -439,11 +457,13 @@
       }
 
       if (filtered.length === 0) {
+        const noTitle = tFn ? tFn('inventory.noProductsFound') : 'कोई सामान नहीं मिला';
+        const noSub = tFn ? tFn('inventory.noProductsMatch') : 'इस खोज या फ़िल्टर में कोई सामान नहीं है।';
         list.innerHTML = `
           <div class="p-8 text-center space-y-2">
             <span class="text-3xl">🔍</span>
-            <div class="text-sm font-extrabold text-slate-700">कोई सामान नहीं मिला</div>
-            <div class="text-xs text-slate-400">No products match this filter or search query.</div>
+            <div class="text-sm font-extrabold text-slate-700">${escapeHtml(noTitle)}</div>
+            <div class="text-xs text-slate-400">${escapeHtml(noSub)}</div>
           </div>
         `;
         return;
@@ -454,7 +474,7 @@
         const thresh = Number(p.low_stock_threshold) || 0;
         const unit = escapeHtml(p.base_unit || '');
         let status = 'healthy';
-        let statusLabel = 'स्टॉक में';
+        let statusLabel = tFn ? tFn('inventory.statusInStock') : 'In Stock';
         let dotClass = 'bg-emerald-600';
         let badgeBg = 'var(--color-stock-green-bg)';
         let badgeColor = 'var(--color-stock-green)';
@@ -462,19 +482,22 @@
 
         if (qty <= 0) {
           status = 'out';
-          statusLabel = 'खत्म माल';
+          statusLabel = tFn ? tFn('inventory.statusOutOfStock') : 'Out of Stock';
           dotClass = 'bg-red-600';
           badgeBg = 'var(--color-stock-red-bg)';
           badgeColor = 'var(--color-stock-red)';
           qtyColorClass = 'text-red-700';
         } else if (qty <= thresh) {
           status = 'low';
-          statusLabel = 'कम स्टॉक';
+          statusLabel = tFn ? tFn('inventory.statusLowStock') : 'Low Stock';
           dotClass = 'bg-amber-600 animate-pulse';
           badgeBg = 'var(--color-stock-amber-bg)';
           badgeColor = 'var(--color-stock-amber)';
           qtyColorClass = 'text-amber-900';
         }
+
+        const alertText = tFn ? tFn('inventory.alertAt', { threshold: thresh, unit: unit }) : `Alert at ${thresh} ${unit}`;
+        const detailsText = tFn ? tFn('inventory.details') : 'Details →';
 
         return `
           <div class="product-row p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer bg-white transition hover:shadow-md active:scale-[0.99]"
@@ -488,7 +511,7 @@
               </div>
               <div class="min-w-0">
                 <div class="font-extrabold text-base leading-snug text-[var(--color-text-primary)] truncate">${escapeHtml(p.name)}</div>
-                <div class="text-xs font-semibold text-[var(--color-text-secondary)] truncate">${escapeHtml(p.category || 'General')} • Alert at ${thresh} ${unit}</div>
+                <div class="text-xs font-semibold text-[var(--color-text-secondary)] truncate">${escapeHtml(p.category || 'General')} • ${escapeHtml(alertText)}</div>
                 <div class="font-black text-base ${qtyColorClass} mt-0.5">${qty} ${unit}</div>
               </div>
             </div>
@@ -497,7 +520,7 @@
                 <span class="w-2.5 h-2.5 rounded-full ${dotClass}"></span>
                 <span>${statusLabel}</span>
               </div>
-              <span class="text-[10px] text-slate-400 font-bold mt-1">विवरण →</span>
+              <span class="text-[10px] text-slate-400 font-bold mt-1">${escapeHtml(detailsText)}</span>
             </div>
           </div>
         `;
@@ -562,7 +585,8 @@
           micBtn.style.backgroundColor = 'var(--color-warm-accent)';
           micBtn.classList.add('animate-pulse');
         }
-        const started = speech.startListening('hi-IN');
+        const speechLang = (window.VI && window.VI.i18n) ? window.VI.i18n.getSpeechLang() : 'hi-IN';
+        const started = speech.startListening(speechLang);
         if (!started && micBtn) {
           micBtn.style.backgroundColor = 'var(--color-primary-blue)';
           micBtn.classList.remove('animate-pulse');
@@ -592,7 +616,7 @@
 
       const btn = document.getElementById('submitAddBtn');
       btn.disabled = true;
-      btn.textContent = 'सेव हो रहा है...';
+      btn.textContent = window.VI?.i18n?.t ? window.VI.i18n.t('confirmation.saving') : 'सेव हो रहा है...';
 
       try {
         const created = await window.VI.api('/products', {
@@ -613,7 +637,7 @@
         }
 
         closeAddModal();
-        showToast('सामान सफलतापूर्वक जोड़ा गया! (Product added)');
+        showToast(window.VI?.i18n?.t ? window.VI.i18n.t('toast.stockUpdated', { qty: initialStock || '', unit: base_unit, name }) : 'सामान सफलतापूर्वक जोड़ा गया!');
         forceView = null;
         await loadProducts();
       } catch (err) {
@@ -621,7 +645,7 @@
         showToast(err.message || 'सामान जोड़ने में विफल', true);
       } finally {
         btn.disabled = false;
-        btn.textContent = 'जोड़ें (Save)';
+        btn.textContent = window.VI?.i18n?.t ? window.VI.i18n.t('inventory.save') : 'जोड़ें';
       }
     }
 
@@ -646,6 +670,21 @@
     let invSpeechRegistered = false;
     function initInventorySpeech() {
       if (invSpeechRegistered) return;
+
+      // Gate debug toggle behind ?debug=1 or localStorage vi_debug=1 (hidden by default)
+      const isDebug = new URLSearchParams(window.location.search).get('debug') === '1' || localStorage.getItem('vi_debug') === '1';
+      if (isDebug) {
+        document.getElementById('debugViewSwitcher')?.classList.remove('hidden');
+      }
+
+      // Re-render dynamic text on language switch
+      if (window.VI && window.VI.i18n) {
+        window.VI.i18n.onLangChange(() => {
+          updateCounts();
+          renderProducts();
+        });
+      }
+
       loadProducts();
 
       const speech = window.VI && window.VI.speech;

@@ -78,7 +78,14 @@ const UNRESOLVED_UNITS = new Set([
   'pao',
   'paav',
   'paao',
-  'पाव'
+  'पाव',
+  'carton',
+  'cartons',
+  'कार्टन',
+  'कर्टन',
+  'కార్టన్',
+  'पेटी',
+  'పెట్టె'
 ]);
 
 export const CONTAINER_UNITS = new Set([
@@ -96,15 +103,10 @@ export const CONTAINER_UNITS = new Set([
   'पैकेट',
   'box',
   'boxes',
-  'peti',
   'dabba',
-  'carton',
-  'cartons',
   'crate',
   'crates',
-  'पेटी',
   'डिब्बा',
-  'పెట్టె',
   'bottle',
   'bottles',
   'shishi',
@@ -160,11 +162,11 @@ export function toBase(qty, unit, baseUnit, overrides = []) {
     }
   }
 
-  // 2. Explicitly guard pav/pao without override
+  // 2. Explicitly guard pav/pao/carton without override
   if (UNRESOLVED_UNITS.has(cleanUnit)) {
     throw new UnitError(
       'UNRESOLVED_UNIT',
-      `Unit "${unit}" requires a per-product override (cannot guess 200g vs 250g)`
+      `Unit "${unit}" requires a per-product override (conversion factor varies by product)`
     );
   }
 
@@ -234,11 +236,11 @@ export function fromBase(qtyBase, unit, baseUnit, overrides = []) {
     }
   }
 
-  // 2. Explicitly guard pav/pao without override
+  // 2. Explicitly guard pav/pao/carton without override
   if (UNRESOLVED_UNITS.has(cleanUnit)) {
     throw new UnitError(
       'UNRESOLVED_UNIT',
-      `Unit "${unit}" requires a per-product override (cannot guess 200g vs 250g)`
+      `Unit "${unit}" requires a per-product override (conversion factor varies by product)`
     );
   }
 

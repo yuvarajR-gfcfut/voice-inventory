@@ -7,17 +7,18 @@
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+Devanagari:wght@500;600;700&family=Noto+Sans+Telugu:wght@500;600;700&display=swap" rel="stylesheet">
   <style id="auth-guard">html { visibility: hidden; }</style>
   <script src="/vendor/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     window.VI.auth.requireSession();
   </script>
   <style>
     :root {
-      --font-family-base: 'Baloo 2', system-ui, -apple-system, sans-serif;
+      --font-family-base: 'Baloo 2', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, -apple-system, sans-serif;
       --color-primary-blue: #1D4ED8;
       --color-primary-blue-hover: #1E40AF;
       --color-warm-accent: #EA580C;
@@ -36,6 +37,14 @@
       --chat-user-bg: #EFF6FF;
       --chat-user-text: #1E40AF;
       --chat-system-bg: #FFFFFF;
+    }
+
+    body.font-devanagari, .font-devanagari {
+      font-family: 'Noto Sans Devanagari', var(--font-family-base) !important;
+    }
+
+    body.font-telugu, .font-telugu {
+      font-family: 'Noto Sans Telugu', var(--font-family-base) !important;
     }
 
     [data-theme="outdoor"] {
@@ -94,10 +103,10 @@
     <!-- State Switcher: Active Alerts vs Healthy Empty State -->
     <div class="grid grid-cols-2 gap-2 p-1 bg-slate-200/80 rounded-xl text-xs font-bold text-center">
       <button onclick="setAlertState('active')" id="btn-active" class="py-1.5 rounded-lg bg-white shadow text-rose-800">
-        ⚠️ Active Alerts (2)
+        ⚠️ <span data-i18n="alertsPage.activeAlerts">Active Alerts</span> (2)
       </button>
       <button onclick="setAlertState('healthy')" id="btn-healthy" class="py-1.5 rounded-lg text-slate-700">
-        ✓ All Healthy (0)
+        ✓ <span data-i18n="alertsPage.allHealthy">All Healthy</span> (0)
       </button>
     </div>
   </div>
@@ -108,8 +117,8 @@
     <!-- Top Header -->
     <div class="px-5 pt-4 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
       <div>
-        <h1 class="font-black text-xl leading-tight text-[var(--color-text-primary)]">अलर्ट और सवाल (Alerts & Q&A)</h1>
-        <p class="text-xs font-semibold text-[var(--color-text-secondary)]">Proactive Stock Alerts & Voice Assistant</p>
+        <h1 data-i18n="alertsPage.title" class="font-black text-xl leading-tight text-[var(--color-text-primary)]"></h1>
+        <p data-i18n="alertsPage.subtitle" class="text-xs font-semibold text-[var(--color-text-secondary)]">Proactive Stock Alerts & Voice Assistant</p>
       </div>
       <div class="w-8 h-8 rounded-full bg-blue-50 border flex items-center justify-center text-blue-700 font-black text-xs" style="border-color: var(--color-border-subtle);">
         AI
@@ -125,8 +134,8 @@
         <!-- Active Alerts Mode -->
         <div id="activeAlertsGroup" class="space-y-2.5">
           <div class="flex items-center justify-between text-xs font-extrabold text-[var(--color-text-primary)]">
-            <span>ध्यान दें (Needs Attention)</span>
-            <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-black uppercase">2 Critical</span>
+            <span data-i18n="alertsPage.needsAttention"></span>
+            <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-black uppercase">2 <span data-i18n="alertsPage.critical">Critical</span></span>
           </div>
 
           <!-- Alert Card 1: Out of Stock (Red) -->
@@ -140,7 +149,7 @@
                 <div class="font-black text-sm text-red-700 mt-0.5">0 पैकेट (Out of Stock)</div>
               </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-red-bg); color: var(--color-stock-red);">
+            <span data-i18n="alertsPage.critical" class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-red-bg); color: var(--color-stock-red);">
               खत्म माल (Empty)
             </span>
           </div>
@@ -156,7 +165,7 @@
                 <div class="font-black text-sm text-amber-900 mt-0.5">4 Litres (कम है)</div>
               </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-amber-bg); color: var(--color-stock-amber);">
+            <span data-i18n="alertsPage.orderSoon" class="px-2.5 py-1 rounded-full text-xs font-extrabold flex-shrink-0" style="background-color: var(--color-stock-amber-bg); color: var(--color-stock-amber);">
               मंगाएं (Order soon)
             </span>
           </div>
@@ -170,11 +179,10 @@
             </svg>
           </div>
           <div>
-            <h3 class="font-black text-sm text-emerald-950">
-              All stock levels look healthy <br>
-              <span class="text-xs font-extrabold text-emerald-800">(सब ठीक है • कोई अलर्ट नहीं)</span>
+            <h3 data-i18n="alertsPage.allHealthyTitle" class="font-black text-sm text-emerald-950">
+              All stock levels look healthy
             </h3>
-            <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">No products require immediate reordering.</p>
+            <p data-i18n="alertsPage.allHealthySubtitle" class="text-[11px] text-emerald-700 font-semibold mt-0.5">No products require immediate reordering.</p>
           </div>
         </div>
 
@@ -184,8 +192,8 @@
       <section class="space-y-3 pt-2 border-t" style="border-color: var(--color-border-subtle);">
         
         <div class="flex items-center justify-between text-xs font-extrabold text-[var(--color-text-secondary)]">
-          <span>बातचीत इतिहास (Stock Inquiries)</span>
-          <span class="text-[10px] text-slate-400 font-semibold">Today</span>
+          <span data-i18n="alertsPage.inquiriesTitle">बातचीत इतिहास (Stock Inquiries)</span>
+          <span data-i18n="alertsPage.today" class="text-[10px] text-slate-400 font-semibold">Today</span>
         </div>
 
         <!-- Exchange 1: With Embedded Stock-Summary Card -->
@@ -202,7 +210,7 @@
             <div class="bubble-system max-w-[90%] p-3.5 text-xs bg-white border shadow-sm space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
               <div class="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
                 <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                <span>StockSathi Voice Readout:</span>
+                <span data-i18n="alertsPage.voiceReadout">StockSathi Voice Readout:</span>
               </div>
               <p class="font-semibold text-slate-800 text-xs leading-relaxed">
                 You have <strong>6 bags of India Gate Basmati Rice</strong> left. That is sufficient for about 3 days.
@@ -223,7 +231,7 @@
                 </div>
                 <div class="text-right flex-shrink-0">
                   <div class="font-black text-sm text-slate-900">6 Bags</div>
-                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                  <span data-i18n="alertsPage.healthyTag" class="inline-block px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
                     ✓ पर्याप्त (Healthy)
                   </span>
                 </div>
@@ -247,7 +255,7 @@
             <div class="bubble-system max-w-[85%] p-3.5 text-xs bg-white border shadow-sm space-y-1" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
               <div class="flex items-center gap-1.5 text-blue-700 font-extrabold text-[11px]">
                 <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                <span>StockSathi Voice Readout:</span>
+                <span data-i18n="alertsPage.voiceReadout">StockSathi Voice Readout:</span>
               </div>
               <p class="font-semibold text-slate-800 text-xs leading-relaxed">
                 Yesterday at <strong>11:30 AM</strong>, 20 bags of Madhur Sugar arrived from ITC Mandi Delivery.
@@ -274,8 +282,8 @@
         </button>
 
         <div class="text-left">
-          <div class="font-extrabold text-sm text-[var(--color-text-primary)]">Ask StockSathi (बोलकर पूछें)</div>
-          <div class="text-[11px] font-semibold text-[var(--color-text-secondary)]">उदा: "चावल कितना बचा है?"</div>
+          <div data-i18n="alertsPage.askStockSathi" class="font-extrabold text-sm text-[var(--color-text-primary)]">Ask StockSathi (बोलकर पूछें)</div>
+          <div data-i18n="alertsPage.askExample" class="text-[11px] font-semibold text-[var(--color-text-secondary)]">उदा: "चावल कितना बचा है?"</div>
         </div>
       </div>
 
@@ -289,7 +297,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
         </svg>
-        <span class="text-[11px] font-medium mt-0.5">Home</span>
+        <span data-i18n="nav.home" class="text-[11px] font-medium mt-0.5">Home</span>
       </button>
 
       <!-- Tab 2: Inventory -->
@@ -297,7 +305,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
         </svg>
-        <span class="text-[11px] font-medium mt-0.5">Inventory</span>
+        <span data-i18n="nav.inventory" class="text-[11px] font-medium mt-0.5">Inventory</span>
       </button>
 
       <!-- Tab 3: Alerts (Active with Top Indicator) -->
@@ -309,7 +317,7 @@
           </svg>
           <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-white rounded-full"></span>
         </div>
-        <span class="text-[11px] font-extrabold mt-0.5">Alerts</span>
+        <span data-i18n="nav.alerts" class="text-[11px] font-extrabold mt-0.5">Alerts</span>
       </button>
 
       <!-- Tab 4: Settings -->
@@ -317,7 +325,7 @@
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
           <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
         </svg>
-        <span class="text-[11px] font-medium mt-0.5">Settings</span>
+        <span data-i18n="nav.settings" class="text-[11px] font-medium mt-0.5">Settings</span>
       </button>
 
     </footer>

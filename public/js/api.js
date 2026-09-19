@@ -8,7 +8,10 @@
 
     const token = await window.VI.auth.getToken();
     if (!token) {
-      await window.VI.auth.signOut();
+      const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+      if (!urlParams || urlParams.get('skip_auth') !== '1') {
+        await window.VI.auth.signOut();
+      }
       const err = new Error('Authentication required');
       err.code = 'UNAUTHENTICATED';
       err.status = 401;
