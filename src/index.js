@@ -59,4 +59,6 @@ app.get('/', (req, res) => {
   res.redirect('/stocksathi_home_dashboard.html');
 });
 
+app.use(errorHandler);
+
 export default app;
