@@ -286,7 +286,7 @@ class SpeechManager {
       case 'no-speech':
         return "Didn't catch any speech. Tap mic and try again, or type below.";
       case 'network':
-        return 'Network error connecting to speech service. Check internet/airplane mode or type below.';
+        return 'Network error connecting to speech service. If using Brave/privacy browser, please test in Chrome on your phone or desktop, or type below.';
       case 'audio-capture':
         return 'No microphone found or audio capture failed. Please type below.';
       case 'not-supported':
