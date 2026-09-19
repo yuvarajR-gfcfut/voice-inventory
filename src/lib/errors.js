@@ -37,6 +37,14 @@ export function mapDbError(error) {
     return new AppError(404, 'MOVEMENT_NOT_FOUND', 'Movement not found');
   }
 
+  if (message.includes('PRODUCT_ARCHIVED')) {
+    return new AppError(409, 'PRODUCT_ARCHIVED', 'Product is archived');
+  }
+
+  if (message.includes('INVALID_UNIT')) {
+    return new AppError(400, 'INVALID_UNIT', 'Invalid unit');
+  }
+
   if (message.includes('INVALID_QTY')) {
     return new AppError(400, 'INVALID_QTY', 'Invalid quantity');
   }

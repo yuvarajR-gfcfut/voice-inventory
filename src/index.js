@@ -5,6 +5,7 @@ import healthRouter from './routes/health.js';
 import cronRouter from './routes/cron.js';
 import configRouter from './routes/config.js';
 import meRouter from './routes/me.js';
+import productsRouter from './routes/products.js';
 import { errorHandler } from './middleware/error.js';
 import { AppError } from './lib/errors.js';
 
@@ -40,6 +41,7 @@ apiRouter.use(healthRouter);
 apiRouter.use(cronRouter);
 apiRouter.use(configRouter);
 apiRouter.use(meRouter);
+apiRouter.use('/products', productsRouter);
 
 apiRouter.use((req, res, next) => {
   next(new AppError(404, 'NOT_FOUND', 'Endpoint not found'));

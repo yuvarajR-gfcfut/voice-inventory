@@ -79,13 +79,22 @@
     .pulse-mic {
       animation: pulseSoft 3s ease-in-out infinite;
     }
+
+    .action-tab.active {
+      background-color: var(--color-primary-blue);
+      color: #FFFFFF;
+      border-color: var(--color-primary-blue);
+    }
   </style>
 </head>
-<body class="min-h-screen p-4 sm:p-6 flex flex-col items-center justify-start">
+<body class="min-h-screen p-2 sm:p-4 flex flex-col items-center justify-start">
   
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xl transition-all duration-300 z-50 max-w-[90vw] text-center opacity-0 pointer-events-none"></div>
+
   <!-- Interactive Controller Bar -->
   <div class="w-full max-w-sm mb-3 flex items-center justify-between text-xs font-bold px-1">
-    <span class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">Product View • SKU #1042</span>
+    <span id="headerCategory" class="text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full truncate max-w-[200px]">Product View</span>
     <button onclick="toggleSunlightMode()" id="sunlightBtn" class="px-2.5 py-1 rounded-lg border bg-white shadow-sm flex items-center gap-1 cursor-pointer active:scale-95">
       <span>☀️</span>
       <span id="sunlightLabel">Sunlight Mode</span>
@@ -96,184 +105,183 @@
   <main class="w-full max-w-sm bg-[var(--color-bg-surface)] rounded-3xl border shadow-2xl relative flex flex-col justify-between overflow-hidden" style="border-width: var(--border-width); border-color: var(--color-border-subtle); height: 750px;">
     
     <!-- Top Nav Header -->
-    <div class="px-5 pt-4 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
-      <button onclick="alert('Going back to Inventory...')" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-slate-100" style="border-color: var(--color-border-subtle);">
+    <div class="px-4 pt-4 pb-2 flex items-center justify-between border-b" style="border-color: var(--color-border-subtle);">
+      <button onclick="window.location.href='stocksathi_inventory_tab.html'" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-slate-100 cursor-pointer" style="border-color: var(--color-border-subtle);" title="Back to Inventory">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
       </button>
       <span class="text-xs font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">माल का विवरण (Details)</span>
-      <button onclick="alert('Share product report')" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-slate-100" style="border-color: var(--color-border-subtle);">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+      <button onclick="confirmArchiveProduct()" class="w-9 h-9 rounded-xl border flex items-center justify-center text-slate-700 bg-slate-50 hover:bg-red-50 hover:text-red-600 cursor-pointer" style="border-color: var(--color-border-subtle);" title="Archive Product (हटाएं)">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       </button>
     </div>
 
     <!-- Scrollable Middle Canvas -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-28">
+    <div id="productDetailBody" class="flex-1 overflow-y-auto p-4 space-y-4 pb-28">
       
-      <!-- 1. Top Section: Product Header & Current Stock Quantity -->
-      <div class="p-3.5 rounded-2xl border flex items-center justify-between gap-3 bg-white" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-        <div class="flex items-center gap-3">
-          <!-- 56px Product Icon (Burlap Sack) -->
-          <div class="w-14 h-14 rounded-2xl bg-amber-50 border flex-shrink-0 flex items-center justify-center text-amber-900 shadow-inner" style="border-color: var(--color-border-subtle);">
-            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M16 6V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H2v13c0 1.89 1.41 3 3 3h14c1.59 0 3-1.11 3-3V6h-6zm-6-2h4v2h-4V4z"/>
+      <!-- Loading Skeleton -->
+      <div id="detailLoading" class="flex flex-col items-center justify-center py-20 text-slate-400 space-y-2">
+        <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span class="text-xs font-bold text-slate-600">लोड हो रहा है... (Loading product)</span>
+      </div>
+
+      <!-- Content Container (Hidden during load) -->
+      <div id="detailContent" class="hidden space-y-4">
+
+        <!-- 1. Top Section: Product Header & Current Stock Quantity -->
+        <div class="p-3.5 rounded-2xl border flex items-center justify-between gap-3 bg-white" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <div class="flex items-center gap-3 min-w-0">
+            <!-- Product Icon -->
+            <div id="unitBadge" class="w-14 h-14 rounded-2xl bg-amber-50 border flex-shrink-0 flex items-center justify-center text-amber-900 font-black text-sm shadow-inner" style="border-color: var(--color-border-subtle);">
+              kg
+            </div>
+            <div class="min-w-0">
+              <h2 id="prodTitle" class="font-black text-lg leading-tight text-[var(--color-text-primary)] truncate">...</h2>
+              <p id="prodSubtitle" class="text-xs font-semibold text-[var(--color-text-secondary)] truncate">...</p>
+            </div>
+          </div>
+
+          <!-- Quantity in Prominent Bold + Unit + Status -->
+          <div class="text-right flex-shrink-0">
+            <div class="font-black text-2xl tracking-tight text-[var(--color-text-primary)]">
+              <span id="prodQty">0</span> <span id="prodUnitLabel" class="text-sm font-extrabold text-[var(--color-text-secondary)]">kg</span>
+            </div>
+            <div id="prodStatusBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold mt-0.5">
+              <span id="prodStatusDot" class="w-2 h-2 rounded-full"></span>
+              <span id="prodStatusText">स्टॉक में</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Manual Stock Update Card (In / Out / Adjust) -->
+        <div class="p-3.5 rounded-2xl border bg-white space-y-3" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <div class="flex items-center justify-between">
+            <div class="font-extrabold text-xs text-[var(--color-text-primary)]">स्टॉक अपडेट (Quick Stock Entry)</div>
+            <span id="availStockHint" class="text-[11px] font-bold text-slate-500">उपलब्ध: 0</span>
+          </div>
+
+          <!-- Mode Selector Tabs -->
+          <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-extrabold text-center">
+            <button type="button" onclick="setStockMode('in')" id="tab-in" class="action-tab active py-1.5 rounded-lg border border-transparent transition cursor-pointer">
+              + आवक (In)
+            </button>
+            <button type="button" onclick="setStockMode('out')" id="tab-out" class="action-tab py-1.5 rounded-lg border border-transparent transition cursor-pointer text-slate-600">
+              − बिक्री (Out)
+            </button>
+            <button type="button" onclick="setStockMode('adjust')" id="tab-adjust" class="action-tab py-1.5 rounded-lg border border-transparent transition cursor-pointer text-slate-600">
+              ⚙️ सेट (Set)
+            </button>
+          </div>
+
+          <!-- Stock Action Form -->
+          <form onsubmit="handleStockSubmit(event)" class="space-y-2.5">
+            <div class="relative">
+              <input id="stockQtyInput" oninput="validateStockAction()" type="number" step="any" min="0.001" placeholder="मात्रा दर्ज करें (Enter qty)..." class="w-full h-11 px-3 rounded-xl border text-sm font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+              <span id="inputUnitBadge" class="absolute right-3 top-2.5 text-xs font-extrabold text-slate-400">kg</span>
+            </div>
+
+            <!-- Validation Error Warning (Visible when Out > Available) -->
+            <div id="stockValidationWarning" class="hidden text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg border border-red-200">
+              ⚠️ उपलब्ध स्टॉक से अधिक नहीं निकाल सकते! (Max available: <span id="warnMaxQty">0</span>)
+            </div>
+
+            <!-- Quick Qty Increment Chips -->
+            <div id="quickChipsContainer" class="flex items-center gap-1.5 overflow-x-auto text-[11px] font-bold pb-0.5">
+              <!-- Dynamically populated chips -->
+            </div>
+
+            <!-- Submit Action Button -->
+            <button id="stockSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl font-bold text-xs text-white shadow-md active:scale-98 transition flex items-center justify-center gap-1 cursor-pointer" style="background-color: var(--color-primary-blue);">
+              <span id="stockSubmitText">+ स्टॉक जोड़ें (Add Stock)</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- 3. Horizontal Sparkline Graph (Last Movements) -->
+        <div class="p-4 rounded-2xl border bg-white space-y-2" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-[var(--color-text-primary)]">स्टॉक गतिविधि (Movement Trend)</span>
+            <span id="sparkSummary" class="text-emerald-700 font-extrabold text-[11px]"></span>
+          </div>
+
+          <!-- SVG Sparkline -->
+          <div class="h-20 w-full relative pt-2">
+            <svg id="sparklineSvg" class="w-full h-full overflow-visible" viewBox="0 0 280 60">
+              <defs>
+                <linearGradient id="sparkGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#16A34A" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#16A34A" stop-opacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <polygon id="sparkPolygon" points="" fill="url(#sparkGradient)"/>
+              <polyline id="sparkPolyline" points="" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <g id="sparkPoints"></g>
             </svg>
           </div>
-          <div>
-            <h2 class="font-black text-lg leading-tight text-[var(--color-text-primary)]">आशीर्वाद आटा 10kg</h2>
-            <p class="text-xs font-semibold text-[var(--color-text-secondary)]">Aashirvaad Shudh Chakki Atta</p>
+
+          <!-- Sparkline Date Labels -->
+          <div id="sparkLabels" class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-1 border-t" style="border-color: var(--color-border-subtle);">
+            <span>Start</span>
+            <span class="text-emerald-800 font-black">Current</span>
           </div>
         </div>
 
-        <!-- Quantity in Prominent Bold + Unit + Status -->
-        <div class="text-right flex-shrink-0">
-          <div class="font-black text-2xl tracking-tight text-[var(--color-text-primary)]">18 <span class="text-sm font-extrabold text-[var(--color-text-secondary)]">बोरी</span></div>
-          <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold mt-0.5" style="background-color: var(--color-stock-green-bg); color: var(--color-stock-green);">
-            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-            <span>पर्याप्त स्टॉक</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Horizontal Sparkline Graph (Last 7 Entries Movement) -->
-      <div class="p-4 rounded-2xl border bg-white space-y-2" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-        <div class="flex items-center justify-between text-xs font-bold">
-          <span class="text-[var(--color-text-primary)]">स्टॉक गतिविधि (Last 7 Movements)</span>
-          <span class="text-emerald-700 font-extrabold">↑ शुद्ध आवक (+8 बोरी)</span>
-        </div>
-
-        <!-- SVG 7-Point Sparkline -->
-        <div class="h-20 w-full relative pt-2">
-          <svg class="w-full h-full overflow-visible" viewBox="0 0 280 60">
-            <defs>
-              <linearGradient id="sparkGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#16A34A" stop-opacity="0.35"/>
-                <stop offset="100%" stop-color="#16A34A" stop-opacity="0.0"/>
-              </linearGradient>
-            </defs>
-            <!-- Area Fill -->
-            <polygon points="0,55 0,45 46,36 92,44 138,26 184,22 230,16 276,4 276,55" fill="url(#sparkGradient)"/>
-            <!-- Line Stroke -->
-            <polyline points="0,45 46,36 92,44 138,26 184,22 230,16 276,4" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <!-- 7 Data Points -->
-            <circle cx="0" cy="45" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
-            <circle cx="46" cy="36" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
-            <circle cx="92" cy="44" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
-            <circle cx="138" cy="26" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
-            <circle cx="184" cy="22" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
-            <circle cx="230" cy="16" r="4" fill="#FFFFFF" stroke="#16A34A" stroke-width="2.5"/>
-            <circle cx="276" cy="4" r="5" fill="#16A34A" stroke="#FFFFFF" stroke-width="2"/>
-          </svg>
-        </div>
-
-        <!-- 7 Entries Bottom Labels -->
-        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-1 border-t" style="border-color: var(--color-border-subtle);">
-          <span>12 Sep</span>
-          <span>13 Sep</span>
-          <span>14 Sep</span>
-          <span>15 Sep</span>
-          <span>16 Sep</span>
-          <span>17 Sep</span>
-          <span class="text-emerald-800 font-black">Today (18)</span>
-        </div>
-      </div>
-
-      <!-- 3. Low-Stock Alert Threshold Stepper Control -->
-      <div class="p-4 rounded-2xl border bg-white space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="font-extrabold text-sm text-[var(--color-text-primary)]">कम स्टॉक चेतावनी (Alert Limit)</div>
-            <div class="text-xs text-[var(--color-text-secondary)]">इस संख्या से कम होने पर चेतावनी मिलेगी</div>
-          </div>
-          <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">Alert</span>
-        </div>
-
-        <!-- Accessible +/- Stepper -->
-        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-          <!-- Minus Button -->
-          <button onclick="changeThreshold(-1)" class="stepper-btn w-12 h-12 rounded-xl bg-white border flex items-center justify-center font-black text-2xl text-slate-800 cursor-pointer shadow-sm" style="border-color: var(--color-border-subtle);" aria-label="Decrease alert limit">
-            −
-          </button>
-
-          <!-- Stepper Value Display -->
-          <div class="flex items-baseline gap-1.5">
-            <span id="thresholdVal" class="font-black text-3xl text-[var(--color-text-primary)]">5</span>
-            <span class="font-bold text-sm text-[var(--color-text-secondary)]">बोरी (Bags)</span>
+        <!-- 4. Low-Stock Alert Threshold Stepper Control -->
+        <div class="p-4 rounded-2xl border bg-white space-y-2.5" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">कम स्टॉक चेतावनी (Alert Limit)</div>
+              <div class="text-xs text-[var(--color-text-secondary)]">इस संख्या से कम होने पर चेतावनी मिलेगी</div>
+            </div>
+            <span id="stepperSavingBadge" class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">Alert</span>
           </div>
 
-          <!-- Plus Button -->
-          <button onclick="changeThreshold(1)" class="stepper-btn w-12 h-12 rounded-xl bg-white border flex items-center justify-center font-black text-2xl text-slate-800 cursor-pointer shadow-sm" style="border-color: var(--color-border-subtle);" aria-label="Increase alert limit">
-            +
-          </button>
-        </div>
-      </div>
+          <!-- Accessible +/- Stepper -->
+          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+            <!-- Minus Button -->
+            <button onclick="changeThreshold(-1)" type="button" class="stepper-btn w-12 h-12 rounded-xl bg-white border flex items-center justify-center font-black text-2xl text-slate-800 cursor-pointer shadow-sm" style="border-color: var(--color-border-subtle);" aria-label="Decrease alert limit">
+              −
+            </button>
 
-      <!-- 4. Vertically Scrollable Stock History Entries -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between text-xs font-bold text-[var(--color-text-primary)] px-1">
-          <span>स्टॉक इतिहास (Stock History)</span>
-          <span class="text-[11px] text-slate-400 font-semibold">5 Entries</span>
+            <!-- Stepper Value Display -->
+            <div class="flex items-baseline gap-1.5">
+              <span id="thresholdVal" class="font-black text-3xl text-[var(--color-text-primary)]">0</span>
+              <span id="thresholdUnit" class="font-bold text-sm text-[var(--color-text-secondary)]">kg</span>
+            </div>
+
+            <!-- Plus Button -->
+            <button onclick="changeThreshold(1)" type="button" class="stepper-btn w-12 h-12 rounded-xl bg-white border flex items-center justify-center font-black text-2xl text-slate-800 cursor-pointer shadow-sm" style="border-color: var(--color-border-subtle);" aria-label="Increase alert limit">
+              +
+            </button>
+          </div>
         </div>
 
+        <!-- 5. Vertically Scrollable Stock History Entries -->
         <div class="space-y-2">
-          
-          <!-- Entry 1: Voice Addition (Green) -->
-          <div class="p-3 rounded-xl border bg-white flex items-center justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-            <div>
-              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">Today, 10:15 AM</div>
-              <div class="text-[11px] font-semibold text-slate-400">Supplier: ITC Mandi Delivery</div>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="font-black text-base text-emerald-700">+10 बोरी</span>
-              <!-- Voice Microphone Indicator Icon -->
-              <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center" title="Entered via Voice">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-              </div>
-            </div>
+          <div class="flex items-center justify-between text-xs font-bold text-[var(--color-text-primary)] px-1">
+            <span>स्टॉक इतिहास (Stock History)</span>
+            <span id="historyCount" class="text-[11px] text-slate-400 font-semibold">0 Entries</span>
           </div>
 
-          <!-- Entry 2: Voice Removal (Red) -->
-          <div class="p-3 rounded-xl border bg-white flex items-center justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-            <div>
-              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">Yesterday, 4:30 PM</div>
-              <div class="text-[11px] font-semibold text-slate-400">Retail customer sale</div>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="font-black text-base text-rose-700">−2 बोरी</span>
-              <!-- Voice Microphone Indicator Icon -->
-              <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center" title="Entered via Voice">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-              </div>
-            </div>
+          <div id="movementsContainer" class="space-y-2">
+            <!-- Dynamic movement rows -->
           </div>
-
-          <!-- Entry 3: Manual Removal (Red with Keyboard Icon) -->
-          <div class="p-3 rounded-xl border bg-white flex items-center justify-between" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
-            <div>
-              <div class="font-extrabold text-sm text-[var(--color-text-primary)]">17 Sep, 11:00 AM</div>
-              <div class="text-[11px] font-semibold text-slate-400">Manual inventory count adjustment</div>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="font-black text-base text-rose-700">−5 बोरी</span>
-              <!-- Manual Keyboard / Pencil Indicator Icon -->
-              <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center" title="Entered Manually via Keypad">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
-              </div>
-            </div>
-          </div>
-
         </div>
+
       </div>
 
     </div>
 
-    <!-- 5. Bottom-Anchored Voice Action Hub (Prominent Microphone Button) -->
-    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white/95 to-transparent flex flex-col items-center justify-center z-20">
+    <!-- 6. Bottom-Anchored Voice Action Hub -->
+    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white/95 to-transparent flex flex-col items-center justify-center z-20 pointer-events-auto">
       
       <div class="relative flex items-center justify-center">
         <!-- Pulse glow -->
         <div class="absolute w-20 h-20 rounded-full bg-blue-400 opacity-25 pulse-mic"></div>
         
-        <!-- Large Anchored Circular Mic Button (68px) -->
+        <!-- Large Anchored Circular Mic Button (64px) -->
         <button onclick="triggerQuickVoiceUpdate()" class="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl cursor-pointer relative z-10 transition-transform active:scale-92" style="background-color: var(--color-primary-blue); border: var(--border-width) solid #000000;" aria-label="Tap to speak stock update for this product">
           <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -282,7 +290,7 @@
         </button>
       </div>
 
-      <span class="text-xs font-bold text-[var(--color-text-primary)] mt-1.5 px-3 py-0.5 rounded-full border bg-white shadow-sm" style="border-color: var(--color-border-subtle);">
+      <span id="voicePromptHint" class="text-xs font-bold text-[var(--color-text-primary)] mt-1.5 px-3 py-0.5 rounded-full border bg-white shadow-sm truncate max-w-[280px]" style="border-color: var(--color-border-subtle);">
         बोलकर अपडेट करें (Say: "2 बोरी बिका")
       </span>
     </div>
@@ -290,16 +298,517 @@
   </main>
 
   <script>
-    let threshold = 5;
+    let currentProduct = null;
+    let movementsList = [];
+    let currentMode = 'in'; // 'in', 'out', 'adjust'
     let isSunlight = false;
+    let thresholdDebounceTimer = null;
+
+    function getProductId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.className = `fixed top-5 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xl transition-all duration-300 z-50 max-w-[90vw] text-center ${
+        isError ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'
+      }`;
+      toast.style.opacity = '1';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 3000);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
+    }
+
+    async function loadProductData() {
+      const id = getProductId();
+      if (!id) {
+        showToast('उत्पाद आईडी नहीं मिली (No product ID)', true);
+        setTimeout(() => window.location.href = 'stocksathi_inventory_tab.html', 1500);
+        return;
+      }
+
+      try {
+        const [prod, movements] = await Promise.all([
+          window.VI.api(`/products/${id}`),
+          window.VI.api(`/products/${id}/movements`)
+        ]);
+
+        currentProduct = prod;
+        movementsList = movements || [];
+
+        renderProductDetails();
+        renderSparkline();
+        renderMovements();
+
+        document.getElementById('detailLoading').classList.add('hidden');
+        document.getElementById('detailContent').classList.remove('hidden');
+      } catch (err) {
+        console.error('Failed to load product details:', err);
+        showToast(err.message || 'उत्पाद लोड करने में त्रुटि', true);
+        document.getElementById('detailLoading').innerHTML = `
+          <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-center space-y-2">
+            <p class="text-xs font-bold text-red-700">उत्पाद लोड करने में विफल (Failed to load)</p>
+            <p class="text-[11px] text-red-600">${escapeHtml(err.message)}</p>
+            <button onclick="loadProductData()" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold shadow-sm">पुनः प्रयास करें (Retry)</button>
+          </div>
+        `;
+      }
+    }
+
+    function renderProductDetails() {
+      if (!currentProduct) return;
+
+      const p = currentProduct;
+      const qty = Number(p.current_qty) || 0;
+      const thresh = Number(p.low_stock_threshold) || 0;
+      const unit = p.base_unit || '';
+
+      document.getElementById('headerCategory').textContent = p.category ? `Category • ${p.category}` : `Product View • ${p.name}`;
+      document.getElementById('unitBadge').textContent = unit;
+      document.getElementById('prodTitle').textContent = p.name;
+      document.getElementById('prodSubtitle').textContent = `${p.category || 'General'} • Base Unit: ${unit}`;
+      document.getElementById('prodQty').textContent = qty;
+      document.getElementById('prodUnitLabel').textContent = unit;
+      document.getElementById('availStockHint').textContent = `उपलब्ध: ${qty} ${unit}`;
+      document.getElementById('inputUnitBadge').textContent = unit;
+      document.getElementById('warnMaxQty').textContent = `${qty} ${unit}`;
+
+      // Status badge
+      const badge = document.getElementById('prodStatusBadge');
+      const dot = document.getElementById('prodStatusDot');
+      const text = document.getElementById('prodStatusText');
+
+      if (qty <= 0) {
+        badge.style.backgroundColor = 'var(--color-stock-red-bg)';
+        badge.style.color = 'var(--color-stock-red)';
+        dot.className = 'w-2 h-2 rounded-full bg-red-600';
+        text.textContent = 'खत्म माल (Out)';
+      } else if (qty <= thresh) {
+        badge.style.backgroundColor = 'var(--color-stock-amber-bg)';
+        badge.style.color = 'var(--color-stock-amber)';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-600 animate-pulse';
+        text.textContent = 'कम स्टॉक (Low)';
+      } else {
+        badge.style.backgroundColor = 'var(--color-stock-green-bg)';
+        badge.style.color = 'var(--color-stock-green)';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-600';
+        text.textContent = 'पर्याप्त स्टॉक';
+      }
+
+      // Threshold stepper
+      document.getElementById('thresholdVal').textContent = thresh;
+      document.getElementById('thresholdUnit').textContent = unit;
+
+      // Voice prompt suggestion
+      document.getElementById('voicePromptHint').textContent = `बोलकर अपडेट करें: "2 ${unit} बिका" या "10 ${unit} आया"`;
+
+      renderQuickChips();
+      validateStockAction();
+    }
+
+    function setStockMode(mode) {
+      currentMode = mode;
+      ['in', 'out', 'adjust'].forEach(m => {
+        const tab = document.getElementById('tab-' + m);
+        if (m === mode) {
+          tab.className = 'action-tab active py-1.5 rounded-lg border border-transparent transition cursor-pointer font-bold';
+        } else {
+          tab.className = 'action-tab py-1.5 rounded-lg border border-transparent transition cursor-pointer text-slate-600 font-bold';
+        }
+      });
+
+      const submitText = document.getElementById('stockSubmitText');
+      const submitBtn = document.getElementById('stockSubmitBtn');
+
+      if (mode === 'in') {
+        submitText.textContent = '+ स्टॉक जोड़ें (Add Stock)';
+        submitBtn.style.backgroundColor = 'var(--color-primary-blue)';
+      } else if (mode === 'out') {
+        submitText.textContent = '− स्टॉक घटाएं (Remove Stock)';
+        submitBtn.style.backgroundColor = 'var(--color-stock-red)';
+      } else {
+        submitText.textContent = '⚙️ नया स्टॉक सेट करें (Set Count)';
+        submitBtn.style.backgroundColor = '#475569';
+      }
+
+      renderQuickChips();
+      validateStockAction();
+    }
+
+    function renderQuickChips() {
+      const container = document.getElementById('quickChipsContainer');
+      if (!container || !currentProduct) return;
+
+      const qty = Number(currentProduct.current_qty) || 0;
+      let chips = [];
+
+      if (currentMode === 'in') {
+        chips = [1, 5, 10, 25].map(val => ({
+          label: `+${val}`,
+          value: val
+        }));
+      } else if (currentMode === 'out') {
+        chips = [1, 2, 5, 10].filter(val => val <= qty).map(val => ({
+          label: `−${val}`,
+          value: val
+        }));
+        if (qty > 0) {
+          chips.push({ label: `All (${qty})`, value: qty });
+        }
+      } else {
+        chips = [0, 10, 20, 50].map(val => ({
+          label: `Set ${val}`,
+          value: val
+        }));
+      }
+
+      container.innerHTML = chips.map(c => `
+        <button type="button" onclick="setQuickQty(${c.value})" class="px-2.5 py-1 rounded-lg border bg-slate-50 hover:bg-slate-100 text-slate-700 active:scale-95 transition cursor-pointer" style="border-color: var(--color-border-subtle);">
+          ${c.label}
+        </button>
+      `).join('');
+    }
+
+    function setQuickQty(val) {
+      document.getElementById('stockQtyInput').value = val;
+      validateStockAction();
+    }
+
+    function validateStockAction() {
+      const input = document.getElementById('stockQtyInput');
+      const val = parseFloat(input.value);
+      const warn = document.getElementById('stockValidationWarning');
+      const submitBtn = document.getElementById('stockSubmitBtn');
+
+      if (isNaN(val) || val <= 0 && currentMode !== 'adjust') {
+        warn.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      if (currentMode === 'adjust' && val < 0) {
+        warn.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      // Hard UI guard: In 'out' mode, prevent submitting qty exceeding current stock
+      if (currentMode === 'out') {
+        const available = Number(currentProduct?.current_qty || 0);
+        if (val > available) {
+          warn.classList.remove('hidden');
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          return;
+        }
+      }
+
+      warn.classList.add('hidden');
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    async function handleStockSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('stockQtyInput');
+      const val = parseFloat(input.value);
+
+      if (isNaN(val) || (val <= 0 && currentMode !== 'adjust')) return;
+
+      // Hard guard again
+      if (currentMode === 'out' && val > Number(currentProduct.current_qty || 0)) {
+        showToast('उपलब्ध स्टॉक से अधिक नहीं निकाल सकते!', true);
+        return;
+      }
+
+      const submitBtn = document.getElementById('stockSubmitBtn');
+      const submitText = document.getElementById('stockSubmitText');
+      submitBtn.disabled = true;
+      submitText.textContent = 'अपडेट हो रहा है... (Updating...)';
+
+      try {
+        const idempotency_key = (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `stock-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+        await window.VI.api(`/products/${currentProduct.id}/stock`, {
+          method: 'POST',
+          body: {
+            type: currentMode,
+            qty: val,
+            unit: currentProduct.base_unit,
+            idempotency_key
+          }
+        });
+
+        input.value = '';
+        showToast('स्टॉक अपडेट सफल! (Stock updated)');
+        await loadProductData();
+      } catch (err) {
+        console.error('Stock movement error:', err);
+        if (err.code === 'INSUFFICIENT_STOCK') {
+          showToast(`स्टॉक अपर्याप्त है! (Insufficient stock: ${err.details || ''})`, true);
+        } else {
+          showToast(err.message || 'स्टॉक अपडेट विफल', true);
+        }
+      } finally {
+        submitBtn.disabled = false;
+        setStockMode(currentMode);
+      }
+    }
 
     function changeThreshold(delta) {
-      threshold = Math.max(1, threshold + delta);
-      document.getElementById('thresholdVal').textContent = threshold;
+      if (!currentProduct) return;
+      const current = Number(currentProduct.low_stock_threshold) || 0;
+      const nextVal = Math.max(0, current + delta);
+      currentProduct.low_stock_threshold = nextVal;
+      document.getElementById('thresholdVal').textContent = nextVal;
+
+      const savingBadge = document.getElementById('stepperSavingBadge');
+      savingBadge.textContent = 'Saving...';
+      savingBadge.className = 'text-xs font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded';
+
+      clearTimeout(thresholdDebounceTimer);
+      thresholdDebounceTimer = setTimeout(async () => {
+        try {
+          await window.VI.api(`/products/${currentProduct.id}`, {
+            method: 'PATCH',
+            body: { low_stock_threshold: nextVal }
+          });
+          savingBadge.textContent = 'Saved ✓';
+          savingBadge.className = 'text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded';
+          setTimeout(() => {
+            savingBadge.textContent = 'Alert';
+            savingBadge.className = 'text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded';
+          }, 1500);
+          renderProductDetails();
+        } catch (err) {
+          console.error('Failed to update threshold:', err);
+          showToast(err.message || 'सीमा अपडेट करने में विफल', true);
+          savingBadge.textContent = 'Error';
+          savingBadge.className = 'text-xs font-bold text-red-800 bg-red-100 px-2 py-0.5 rounded';
+        }
+      }, 350);
+    }
+
+    function renderSparkline() {
+      const svg = document.getElementById('sparklineSvg');
+      const polygon = document.getElementById('sparkPolygon');
+      const polyline = document.getElementById('sparkPolyline');
+      const pointsGroup = document.getElementById('sparkPoints');
+      const labelsContainer = document.getElementById('sparkLabels');
+      const summary = document.getElementById('sparkSummary');
+
+      if (!movementsList || movementsList.length === 0) {
+        summary.textContent = 'कोई गतिविधि नहीं';
+        polygon.setAttribute('points', '');
+        polyline.setAttribute('points', '0,30 280,30');
+        polyline.setAttribute('stroke', '#94A3B8');
+        pointsGroup.innerHTML = '';
+        labelsContainer.innerHTML = '<span>No history</span><span class="text-slate-500 font-bold">Today</span>';
+        return;
+      }
+
+      // Take up to last 7 movements in chronological order
+      const recent = movementsList.slice(0, 7).reverse();
+      const balances = recent.map(m => Number(m.balance_after) || 0);
+
+      // Add current stock as latest point if balances has entries
+      const minVal = Math.min(...balances);
+      const maxVal = Math.max(...balances);
+      const range = maxVal - minVal || 1;
+
+      const width = 280;
+      const height = 50;
+      const topPadding = 5;
+      const bottomPadding = 5;
+      const usableHeight = height - topPadding - bottomPadding;
+
+      const points = balances.map((b, i) => {
+        const x = recent.length === 1 ? width / 2 : (i / (recent.length - 1)) * width;
+        const normalized = (b - minVal) / range;
+        const y = height - bottomPadding - (normalized * usableHeight);
+        return { x, y, b };
+      });
+
+      const polyPoints = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      polyline.setAttribute('points', polyPoints);
+      polyline.setAttribute('stroke', '#16A34A');
+
+      const polyFilled = `0,${height} ${polyPoints} ${width},${height}`;
+      polygon.setAttribute('points', polyFilled);
+
+      pointsGroup.innerHTML = points.map((p, idx) => {
+        const isLast = idx === points.length - 1;
+        return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${isLast ? 4.5 : 3.5}" fill="${isLast ? '#16A34A' : '#FFFFFF'}" stroke="#16A34A" stroke-width="2"/>`;
+      }).join('');
+
+      const firstDate = new Date(recent[0].created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      const lastDate = new Date(recent[recent.length - 1].created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+      labelsContainer.innerHTML = `
+        <span>${firstDate}</span>
+        <span class="text-emerald-800 font-black">${lastDate} (${balances[balances.length - 1]} ${escapeHtml(currentProduct.base_unit)})</span>
+      `;
+
+      // Net change
+      const net = balances[balances.length - 1] - balances[0];
+      summary.textContent = net >= 0
+        ? `↑ शुद्ध आवक (+${net} ${currentProduct.base_unit})`
+        : `↓ शुद्ध निकासी (${net} ${currentProduct.base_unit})`;
+      summary.className = net >= 0 ? 'text-emerald-700 font-extrabold text-[11px]' : 'text-rose-700 font-extrabold text-[11px]';
+    }
+
+    function renderMovements() {
+      const container = document.getElementById('movementsContainer');
+      const countEl = document.getElementById('historyCount');
+      countEl.textContent = `${movementsList.length} Entries`;
+
+      if (movementsList.length === 0) {
+        container.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-50 border text-center text-xs text-slate-500 font-semibold" style="border-color: var(--color-border-subtle);">
+            अभी कोई स्टॉक इतिहास नहीं है (No stock movements yet).
+          </div>
+        `;
+        return;
+      }
+
+      const unit = escapeHtml(currentProduct.base_unit || '');
+      const reversedIds = new Set(
+        movementsList.filter(m => m.reverses_id).map(m => m.reverses_id)
+      );
+
+      container.innerHTML = movementsList.map(m => {
+        const d = new Date(m.created_at);
+        const timeStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ', ' +
+                        d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        
+        const isLess24h = (Date.now() - d.getTime()) < (24 * 60 * 60 * 1000);
+        const isNotUndo = m.type !== 'undo';
+        const isAlreadyUndone = reversedIds.has(m.id);
+        const canUndo = isLess24h && isNotUndo && !isAlreadyUndone;
+
+        let deltaColor = 'text-slate-800';
+        let deltaPrefix = '';
+        let deltaNum = Math.abs(Number(m.delta_base));
+
+        if (m.type === 'in') {
+          deltaColor = 'text-emerald-700 font-black';
+          deltaPrefix = '+';
+        } else if (m.type === 'out') {
+          deltaColor = 'text-rose-700 font-black';
+          deltaPrefix = '−';
+        } else if (m.type === 'adjust') {
+          deltaColor = 'text-blue-700 font-black';
+          deltaPrefix = Number(m.delta_base) >= 0 ? '+' : '−';
+        } else if (m.type === 'undo') {
+          deltaColor = 'text-slate-500 font-bold line-through';
+          deltaPrefix = Number(m.delta_base) >= 0 ? '+' : '−';
+        }
+
+        let sourceIcon = `
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+        `;
+        let sourceTitle = 'Manual entry';
+        if (m.source === 'voice') {
+          sourceIcon = `
+            <svg class="w-3.5 h-3.5 text-blue-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+          `;
+          sourceTitle = 'Voice entry';
+        } else if (m.source === 'system' || m.type === 'undo') {
+          sourceIcon = `
+            <svg class="w-3.5 h-3.5 text-purple-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+          `;
+          sourceTitle = 'System / Undo';
+        }
+
+        return `
+          <div class="p-3 rounded-xl border bg-white flex items-center justify-between gap-2" style="border-width: var(--border-width); border-color: var(--color-border-subtle);">
+            <div class="min-w-0">
+              <div class="font-extrabold text-xs text-[var(--color-text-primary)] flex items-center gap-1.5">
+                <span>${timeStr}</span>
+                <span title="${sourceTitle}" class="inline-flex items-center text-slate-400">${sourceIcon}</span>
+              </div>
+              <div class="text-[11px] font-semibold text-slate-400 truncate">
+                ${m.type === 'undo' ? 'Undo movement' : (m.source === 'voice' ? 'Voice Update' : 'Manual stock count')} • शेष: ${m.balance_after} ${unit}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="text-sm ${deltaColor}">
+                ${deltaPrefix}${deltaNum} ${unit}
+              </span>
+
+              ${canUndo ? `
+                <button type="button" onclick="handleUndoMovement('${m.id}', '${m.type}', ${deltaNum})" class="px-2 py-1 rounded-lg border text-[10px] font-extrabold text-red-600 bg-red-50 hover:bg-red-100 border-red-200 cursor-pointer active:scale-95" title="Undo this entry">
+                  वापस लें (Undo)
+                </button>
+              ` : (isAlreadyUndone ? `
+                <span class="text-[10px] font-extrabold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">वापस (Undone)</span>
+              ` : '')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleUndoMovement(movementId, type, qty) {
+      if (!confirm(`क्या आप इस ${type === 'in' ? 'आवक (+)' : 'बिक्री (−)'} एंट्री (${qty} ${currentProduct.base_unit}) को वापस लेना चाहते हैं?`)) {
+        return;
+      }
+
+      try {
+        await window.VI.api(`/products/${currentProduct.id}/undo/${movementId}`, {
+          method: 'POST'
+        });
+        showToast('एंट्री सफलतापूर्वक वापस ली गई! (Movement undone)');
+        await loadProductData();
+      } catch (err) {
+        console.error('Undo error:', err);
+        if (err.code === 'INSUFFICIENT_STOCK') {
+          showToast(`वापस नहीं ले सकते: स्टॉक शून्य से कम हो जाएगा!`, true);
+        } else {
+          showToast(err.message || 'एंट्री वापस लेने में विफल', true);
+        }
+      }
+    }
+
+    async function confirmArchiveProduct() {
+      if (!currentProduct) return;
+      if (!confirm(`क्या आप "${currentProduct.name}" को आर्काइव (हटाना) चाहते हैं?`)) {
+        return;
+      }
+
+      try {
+        await window.VI.api(`/products/${currentProduct.id}/archive`, {
+          method: 'POST'
+        });
+        showToast('सामान आर्काइव किया गया (Product archived)');
+        setTimeout(() => {
+          window.location.href = 'stocksathi_inventory_tab.html';
+        }, 800);
+      } catch (err) {
+        console.error('Archive error:', err);
+        showToast(err.message || 'आर्काइव करने में विफल', true);
+      }
     }
 
     function triggerQuickVoiceUpdate() {
-      alert("🎙️ Quick Voice Update Triggered for Aashirvaad Atta!\nSpeak command:\n• '2 bori bika' (Stock OUT)\n• '10 bori aaya' (Stock IN)");
+      if (!currentProduct) return;
+      alert(`🎙️ Voice Update for ${currentProduct.name}!\nबोलें: "2 ${currentProduct.base_unit} बिका" या "10 ${currentProduct.base_unit} आया"`);
     }
 
     function toggleSunlightMode() {
@@ -318,6 +827,10 @@
         btn.classList.remove('bg-black', 'text-white');
       }
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadProductData();
+    });
   </script>
 </body>
 </html>
